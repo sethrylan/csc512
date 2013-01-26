@@ -1,6 +1,18 @@
 CFLAGS= -Wall -ggdb
 
-all: calc calc2
+all: calc calc2 pseudo
+
+pseudo: pseudo.tab.c pseudo.yy.c
+	gcc -o pseudo pseudo.tab.c
+
+pseudo.tab.c: pseudo.y pseudo.yy.c
+	bison --verbose pseudo.y
+
+pseudo.yy.c: pseudo.l pseudo.tab.h
+	flex -o pseudo.yy.c pseudo.l
+
+pseudo.tab.h: pseudo.y
+	bison -d --verbose pseudo.y
 
 calc: calc.y calc.l
 	bison -d --verbose calc.y
@@ -12,8 +24,8 @@ calc2: scan.c calc.y
 	gcc scan.c calc.tab.c -o calc2 -lfl
 
 clean:
-	rm -f calc calc2
-	rm -f lex.yy.c calc.yy.c
-	rm -f calc.tab.c calc.tab.h
-	rm -f calc.output calc2.output
+	rm -f calc calc2 pseudo
+	rm -f *.yy.c 
+	rm -f *.tab.* 
+	rm -f *.output
 
