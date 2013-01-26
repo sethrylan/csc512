@@ -8,10 +8,9 @@ each newline.
 
 #include <stdlib.h>
 #include <stdio.h>
-//#include <ctype.h>
-#include "calc2.tab.h"
+#include <ctype.h>
+#include "calc.tab.h"
 
-//void yyerror(char *);
 FILE *yyin;
 char* yytext;
 int yylineno;
@@ -30,26 +29,23 @@ int is_op(int c) {
 	}
 }
 
-int yylex() {
+int yylex(void) {
 	// skip whitespace
-//	while ((c = getchar()) == '\t' || c == ' ') {
-//		;
-//	}
 	if(!yyin) {
 		yyin = stdin;
 	}
-	while(1) {
-		int c = getchar();  // character code
+	int c;
+	while(c=getc(yyin)) {
 		if(isdigit(c)) {
-			int value = c - '0';
-			while(isdigit(c = getchar())) {
+			double value = c - '0';
+			while(isdigit(c = getc(yyin))) {
 				value = (10 * value) + (c - '0');
 			}
 			yylval.double_val = value;
+			ungetc(c, yyin);
 			return NUMBER;
 		}
 		if(is_op(c)) {
-			yytext = c;
 			if(c == '\n') {
 				yylineno++;
 			}
@@ -59,10 +55,15 @@ int yylex() {
 		       yyerror("Unknown character");
 		}
 	}
-	// scan number
+
+
+
+// scan number
 //	if(isdigit(c) || c == '.') {
 //		ungetc(c, yyin);
 //		scanf("%lf", &(yylval.double_val));
 //		return NUMBER;
 //	}
+
+	printf("end of scan\n");
 }

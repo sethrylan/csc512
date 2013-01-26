@@ -31,7 +31,7 @@ expr:
 
 %%
 void yyerror(char *s) {
-	fprintf(stderr, "%s at %s line %d\n", s, yytext, yylineno);
+	fprintf(stderr, "%s %s at line %d\n", s, yytext, yylineno);
 }
 
 int main(void) {

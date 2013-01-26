@@ -1,0 +1,170 @@
+Grammar
+
+    0 $accept: program $end
+
+    1 program: program expr '\n'
+    2        | /* empty */
+
+    3 expr: NUMBER
+    4     | expr '*' expr
+    5     | expr '/' expr
+    6     | expr '+' expr
+    7     | expr '-' expr
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'\n' (10) 1
+'*' (42) 4
+'+' (43) 6
+'-' (45) 7
+'/' (47) 5
+error (256)
+NUMBER (258) 3
+
+
+Nonterminals, with rules where they appear
+
+$accept (9)
+    on left: 0
+program (10)
+    on left: 1 2, on right: 0 1
+expr (11)
+    on left: 3 4 5 6 7, on right: 1 4 5 6 7
+
+
+state 0
+
+    0 $accept: . program $end
+
+    $default  reduce using rule 2 (program)
+
+    program  go to state 1
+
+
+state 1
+
+    0 $accept: program . $end
+    1 program: program . expr '\n'
+
+    $end    shift, and go to state 2
+    NUMBER  shift, and go to state 3
+
+    expr  go to state 4
+
+
+state 2
+
+    0 $accept: program $end .
+
+    $default  accept
+
+
+state 3
+
+    3 expr: NUMBER .
+
+    $default  reduce using rule 3 (expr)
+
+
+state 4
+
+    1 program: program expr . '\n'
+    4 expr: expr . '*' expr
+    5     | expr . '/' expr
+    6     | expr . '+' expr
+    7     | expr . '-' expr
+
+    '+'   shift, and go to state 5
+    '-'   shift, and go to state 6
+    '*'   shift, and go to state 7
+    '/'   shift, and go to state 8
+    '\n'  shift, and go to state 9
+
+
+state 5
+
+    6 expr: expr '+' . expr
+
+    NUMBER  shift, and go to state 3
+
+    expr  go to state 10
+
+
+state 6
+
+    7 expr: expr '-' . expr
+
+    NUMBER  shift, and go to state 3
+
+    expr  go to state 11
+
+
+state 7
+
+    4 expr: expr '*' . expr
+
+    NUMBER  shift, and go to state 3
+
+    expr  go to state 12
+
+
+state 8
+
+    5 expr: expr '/' . expr
+
+    NUMBER  shift, and go to state 3
+
+    expr  go to state 13
+
+
+state 9
+
+    1 program: program expr '\n' .
+
+    $default  reduce using rule 1 (program)
+
+
+state 10
+
+    4 expr: expr . '*' expr
+    5     | expr . '/' expr
+    6     | expr . '+' expr
+    6     | expr '+' expr .
+    7     | expr . '-' expr
+
+    $default  reduce using rule 6 (expr)
+
+
+state 11
+
+    4 expr: expr . '*' expr
+    5     | expr . '/' expr
+    6     | expr . '+' expr
+    7     | expr . '-' expr
+    7     | expr '-' expr .
+
+    $default  reduce using rule 7 (expr)
+
+
+state 12
+
+    4 expr: expr . '*' expr
+    4     | expr '*' expr .
+    5     | expr . '/' expr
+    6     | expr . '+' expr
+    7     | expr . '-' expr
+
+    $default  reduce using rule 4 (expr)
+
+
+state 13
+
+    4 expr: expr . '*' expr
+    5     | expr . '/' expr
+    5     | expr '/' expr .
+    6     | expr . '+' expr
+    7     | expr . '-' expr
+
+    $default  reduce using rule 5 (expr)
