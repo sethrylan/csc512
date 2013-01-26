@@ -11,7 +11,8 @@
 }
 
 %token<double_val> NUMBER
-%left '+' '-' '*' '/'
+%left '+' '-'
+%left '*' '/'
 %type<double_val> expr
 
 %%
