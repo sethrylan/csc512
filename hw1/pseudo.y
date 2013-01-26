@@ -3,15 +3,31 @@
 #include <stdlib.h>
 %}
 
-/* add: token, precedence, types etc. */
+/* defintions: token, precedence, types etc. */
 
 %union {
-	double double_val;
+	double	double_val;
+	int	int_val;
+	char*	str_ptr;
 }
 
-%token ASSIGN
-%token<double_val> NUMBER
-%left '+' '-' '*' '/'
+%token ASSIGN VAR BEGINSYM END
+%token IF THEN ELSE ENDIF
+%token WHILE DO ENDWHILE
+%token REPEAT UNTIL ENDREPEAT
+%token FOR TO ENDFOR PARFOR ENDPARFOR PRIVATE
+%token PROC ENDPROC
+%token READ WRITE
+%token IN OUT INOUT
+%token AND OR NOT
+%token EQ NEQ LT GT LTE GTE
+%token<str_ptr> IDENTIFIER
+%token<double_val> INT REAL NUMBER
+
+%left GTE LTE EQ NEQ GT LT
+%left '+' '-'
+%left '*' '/'
+%nonassoc UMINUS
 %type<double_val> expr
 
 %%
@@ -27,7 +43,7 @@ program:
 	;
 
 expr:
-	NUMBER 
+	INT | REAL
         | expr '*' expr         { $$ = $1 * $3; }
 	| expr '/' expr		{ $$ = $1 / $3; }
 	| expr '+' expr		{ $$ = $1 + $3; }
@@ -38,13 +54,12 @@ expr:
 
 %%
 
+/* subroutines */
 #include "pseudo.yy.c"
 
 int main(int argc,char *argv[]) {
   char *result;
-
   result = (char *) yyparse();
-
   return(1);
 }
 

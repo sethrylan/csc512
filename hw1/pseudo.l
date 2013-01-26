@@ -1,38 +1,76 @@
 %{
-#ifndef ASSIGN
-#include "pseudo.tab.h"
-#endif
+	#ifndef ASSIGN
+	#include "pseudo.tab.h"
+	#endif
 %}
 
 %option	yylineno
 
-/* add defninitions here, e.g., digit, letter, ... */
-
-
-
+/* defninitions: digit, letter, ... */
+digit		[0-9]
+alpha		[a-fA-F]
+whitespace	[ \t\n\r]
+operator	[+-/\*]|DIV|MOD
+id		{alpha}({alpha}|{digit})*
 
 %%
 
-":="	{ 
-	return (ASSIGN);
-	}
+":="			{return ASSIGN;}
+VAR			{return VAR;}
+BEGIN			{return BEGINSYM;}
+END			{return END;}
+IF			{return IF;}
+THEN			{return THEN;}
+ELSE			{return ELSE;}
+ENDIF			{return ENDIF;}
+WHILE			{return WHILE;}
+DO			{return DO;}
+ENDWHILE		{return ENDWHILE;}
+REPEAT			{return REPEAT;}
+UNTIL			{return UNTIL;}
+ENDREPEAT		{return ENDREPEAT;}
+FOR			{return FOR;}
+TO			{return TO;}
+ENDFOR			{return ENDFOR;}
+PARFOR			{return PARFOR;}
+PRIVATE			{return PRIVATE;}
+ENDPARFOR		{return ENDPARFOR;}
+PROC			{return PROC;}
+ENDPROC			{return ENDPROC;}
+IN			{return IN;}
+OUT			{return OUT;}
+INOUT			{return INOUT;}
+READ			{return READ;}
+WRITE			{return WRITE;}
+INT			{return INT;}
+REAL			{return REAL;}
+AND			{return AND;}
+OR			{return OR;}
+NOT			{return NOT;}
+"="			{return EQ;}
+"<>"			{return NEQ;}
+">"			{return GT;}
+"<"			{return LT;}
+">="			{return GTE;}
+"<="			{return LTE;}
 
--?[0-9]*\.?[0-9]* {
-	yylval.double_val = atof(yytext);
-	return NUMBER;
-	}
+{whitespace}		;  /* ignore whitespace */
 
-[-+\*/\n] {
-	return *yytext;
-	}
-
-[\t]	;	/* skip whitespace */
+{id}			{yylval.str_ptr = strdup(yytext);
+			    return IDENTIFIER;}   
+			    
+-?{digit}*\.?{digit}* 	{yylval.double_val = atof(yytext);
+			 return NUMBER;
+			}
+			
+{operator}		{return *yytext;}
 
 .	yyerror("Unknown character");
 
-
 %%
 
+/* subroutines */
+
 int yywrap(void) {
-  return 1;
+	return 1;
 }
