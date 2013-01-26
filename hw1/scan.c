@@ -29,12 +29,84 @@ int is_op(int c) {
 	}
 }
 
+//char append(char *out, char *in) {
+//    strcat(out, in);
+//    return out;
+//}
+
 int yylex(void) {
-	// skip whitespace
 	if(!yyin) {
 		yyin = stdin;
 	}
+
 	int c;
+
+	while(c = getc(yyin)){
+	char buffer[] = "";
+
+	s0:
+	if(isdigit(c)) {
+		sprintf(buffer, "%s%c", buffer, c);
+		c = getc(yyin);
+		goto s3;
+	} else if(c=='.') {
+		sprintf(buffer, "%s%c", buffer, c);
+		c = getc(yyin);
+		goto s2;
+	} else if(is_op(c)) {
+		goto s5;
+	} else {
+		goto err;
+	}
+
+	s2:
+	if(isdigit(c)) {
+		sprintf(buffer, "%s%c", buffer, c);
+		c = getc(yyin);
+		goto s4;
+	} else {
+		yylval.double_val = atof(buffer);
+		ungetc(c, yyin);
+		return NUMBER;
+	}
+
+	s3:
+	if (isdigit(c)) {
+		sprintf(buffer, "%s%c", buffer, c);
+		c = getc(yyin);
+		goto s3;
+	} else if(c=='.') {
+		sprintf(buffer, "%s%c", buffer, c);
+		c = getc(yyin);
+		goto s2;
+	} else {
+		yylval.double_val = atof(buffer);
+		ungetc(c, yyin);
+		return NUMBER;
+	}
+
+	s4:
+	if (isdigit(c)) {
+		sprintf(buffer, "%s%c", buffer, c);
+		c = getc(yyin);
+		goto s4;
+	} else {
+		yylval.double_val = atof(buffer);
+		ungetc(c, yyin);
+		return NUMBER;
+	}
+
+	s5:
+	if(c == '\n') {
+		yylineno++;
+	}
+	return c;
+	
+	err:
+	yyerror("Unknown character");
+
+}
+/*
 	while(c=getc(yyin)) {
 		if(isdigit(c)) {
 			double value = c - '0';
@@ -56,7 +128,7 @@ int yylex(void) {
 		}
 	}
 
-
+*/
 
 // scan number
 //	if(isdigit(c) || c == '.') {
@@ -65,5 +137,4 @@ int yylex(void) {
 //		return NUMBER;
 //	}
 
-	printf("end of scan\n");
 }
