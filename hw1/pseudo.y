@@ -10,6 +10,8 @@
 
 /* defintions: token, precedence, types etc. */
 
+%start program
+
 %union {
 	double	double_val;
 	int	int_val;
@@ -26,20 +28,23 @@
 %token PROC ENDPROC PARPROC ENDPARPROC
 %token READ WRITE
 %token IN OUT INOUT REF
-%token AND OR
-%token EQ NEQ LT GT LTE GTE
+%token INT REAL
 
 // type information for terminal tokens: identifiers and numbers
-%token<double_val> INT REAL
+%token<double_val> NUMBER
 %token<str_ptr> IDENTIFIER
-
 
 // associativity and precedence of operators
 %left GTE LTE EQ NEQ GT LT
-%left '+' '-'
-%left '*' '/'
+%left '-'
+%left '+' 
+%left '*'
+%left '/'
 %left "DIV" "MOD"
-%nonassoc UMINUS NOT
+%left OR
+%left AND
+%right NOT
+%nonassoc UMINUS UPLUS
 
 %%
 
@@ -91,22 +96,23 @@ assignment:		variable ASSIGN expression
 			;
 expression:		variable
 			| variable '[' expression ']' 
-			| signOption INT
-			| signOption REAL
+			| NUMBER
 			| expression arithmetricOp expression
 			| INT '(' expression ')'
-			| sign expression
+			| sign expression %prec UMINUS
 			;
-signOption:		sign
-			|
+/*signOption:		|
+			sign
+			;*/
+sign:			'+' UPLUS			{}
+			| '-' UMINUS			{}
 			;
-sign:			'+'
-			| '-'
-			;
-arithmetricOp:		'*'
-			| '/'
-			| '+'
-			| '-'
+arithmetricOp:		'*'				{}
+			| '/'				{}
+			| '+'				{}
+			| '-'				{}
+			| "DIV"				{}
+			| "MOD"				{}
 			;
 comparisonOp:		EQ				{}
 			| NEQ				{}

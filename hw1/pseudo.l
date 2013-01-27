@@ -64,14 +64,10 @@ NOT			{return NOT;}
 {whitespace}		;  /* ignore whitespace */
 
 {id}			{yylval.str_ptr = strdup(yytext);
-			    return IDENTIFIER;}   
-			  
--?{digit}+		{yylval.double_val = atof(yytext);
-			 return INT;
-			}
+			    return IDENTIFIER;}
 			
 -?{digit}*\.?{digit}* 	{yylval.double_val = atof(yytext);
-			 return REAL;
+			 return NUMBER;
 			}
 			
 {operator}		{return *yytext;}
