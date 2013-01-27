@@ -29,11 +29,8 @@
 %token READ WRITE
 %token IN OUT INOUT REF
 %token INT REAL
-%token END_OF_FILE
-
-
-%nonassoc IF
-%nonassoc ELSE
+%token MIN MAX
+%token END_OF_FILE 
 
 // type information for terminal tokens: identifiers and numbers
 %token<double_val> NUMBER
@@ -44,10 +41,12 @@
 %left GTE LTE EQ NEQ GT LT
 %left '+' '-' 
 %left '*' '/'
-%left "DIV" "MOD"
+%left DIV MOD
 %left OR
 %left AND
 %right NOT
+%nonassoc IF
+%nonassoc ELSE
 %nonassoc UMINUS
 
 %%
@@ -56,17 +55,15 @@
  * For EBNF -> BNF rules: http://lampwww.epfl.ch/teaching/archive/compilation-ssc/2000/part4/parsing/node3.html
  */
 
-program: 		block END_OF_FILE
+program: 		block END_OF_FILE			{exit(0);}
 			;
 variable:		IDENTIFIER				{}
 			;
-block:			declarationsOption BEGINSYM statementGroup END
+block:			BEGINSYM statementGroup END
+			declarations BEGINSYM statementGroup END
 			;
 statementGroup:		|
 			statementGroup statement 
-			;
-declarationsOption:	|
-			declarations 
 			;
 declarations:		VAR varListGroup
 			;
@@ -94,6 +91,7 @@ statement:		assignment ';'
 			| output ';' 
 			| procedure ';' 
 			| procCall ';'
+			| error ';'
 			;
 assignment:		variable ASSIGN expression
 			| variable '[' expression ']' ASSIGN expression
@@ -101,22 +99,17 @@ assignment:		variable ASSIGN expression
 expression:		variable
 			| variable '[' expression ']' 
 			| NUMBER
-			| expression arithmetricOp expression %prec '*'
+			| expression DIV expression
+			| expression MOD expression
+			| expression '/' expression
+			| expression '*' expression
+			| expression '+' expression
+			| expression '-' expression
 			| INT '(' expression ')'
 			| sign expression %prec UMINUS
 			;
-/*signOption:		|
-			sign
-			;*/
 sign:			'+' %prec UMINUS		{}
 			| '-' %prec UMINUS		{}
-			;
-arithmetricOp:		'*'				{}
-			| '/'				{}
-			| '+'				{}
-			| '-'				{}
-			| "DIV"				{}
-			| "MOD"				{}
 			;
 comparisonOp:		EQ				{}
 			| NEQ				{}
@@ -132,28 +125,24 @@ comparison:		expression comparisonOp expression
 logicOp:		AND				{}
 			| OR				{}
 			;
-test:			IF comparison THEN statementGroup elseOption ENDIF
-			;
-elseOption:		|
-			ELSE statementGroup
+test:			IF comparison THEN statementGroup ENDIF
+			| IF comparison THEN statementGroup ELSE statementGroup ENDIF
 			;
 loop:			WHILE comparison DO statementGroup ENDWHILE
 			| REPEAT statementGroup UNTIL comparison ENDREPEAT
 			| FOR variable ASSIGN expression TO expression DO statementGroup ENDFOR
 			| PARFOR variable ASSIGN expression TO expression parMod DO statementGroup ENDPARFOR
 			;
-parMod:			privateVarListOption reduceGroup
-			;
-privateVarListOption:	|
-			PRIVATE varList
+parMod:			reduceGroup
+			| PRIVATE varList reduceGroup
 			;
 reduceGroup:		|
 			reduceGroup REDUCE reduceOp varList
 			;
 reduceOp:		'+'				{}
 			|'-'				{}
-			|"MIN"				{}
-			|"MAX"				{}
+			|MIN				{}
+			|MAX				{}
 			;
 input:			READ '(' variable ')'
 			;
@@ -187,8 +176,6 @@ expressionGroup:	|
 			expressionGroup ',' expression 
 			;
 
-
-
 %%
 
 /* subroutines */
@@ -202,6 +189,7 @@ int main(int argc,char *argv[]) {
 
 /*
  * yyerror - returns error msg "err" and line number
+ * also see http://oreilly.com/linux/excerpts/9780596155971/error-reporting-recovery.html
  */
 int yyerror(char *err) {
   fprintf(stderr, "%s in line %d at %s\n", err, yylineno, yytext);

@@ -60,6 +60,10 @@ NOT			{return NOT;}
 "<"			{return LT;}
 ">="			{return GTE;}
 "<="			{return LTE;}
+"DIV"			{return DIV;}
+"MOD"			{return MOD;}
+"MIN"			{return MIN;}
+"MAX"			{return MAX;}
 <<EOF>>			{return END_OF_FILE;}
 
 {whitespace}		;  /* ignore whitespace */
@@ -72,6 +76,10 @@ NOT			{return NOT;}
 			}
 			
 {operator}		{return *yytext;}
+
+[,:;\[\]()]		{return *yytext;}
+
+
 
 .	yyerror("Unknown character");
 
