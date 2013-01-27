@@ -73,6 +73,7 @@ NOT			{return NOT;}
 			
 -?{digit}*\.?{digit}* 	{yylval.double_val = atof(yytext);
 			 return NUMBER;
+			 // TODO: use resWord() and symLookup to return symbol table index
 			}
 			
 {operator}		{return *yytext;}

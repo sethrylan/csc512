@@ -59,21 +59,23 @@ program: 		block END_OF_FILE			{exit(0);}
 			;
 variable:		IDENTIFIER				{}
 			;
-block:			BEGINSYM statementGroup END
-			declarations BEGINSYM statementGroup END
+block:			declarationsOption BEGINSYM statementGroup END
 			;
-statementGroup:		|
-			statementGroup statement 
+statementGroup:		statementGroup statement
+			| 
+			;
+declarationsOption:	declarations
+			| 
 			;
 declarations:		VAR varListGroup
 			;
-varListGroup:		|
-			varListGroup varList ':' type ';'
+varListGroup:		varListGroup varList ':' type ';'
+			|
 			;
 varList: 		variable variableGroup
 			;
-variableGroup:		|
-			variableGroup ',' variable 
+variableGroup:		variableGroup ',' variable
+			| 
 			;
 type:			basicType 
 			| arrayType
@@ -125,19 +127,23 @@ comparison:		expression comparisonOp expression
 logicOp:		AND				{}
 			| OR				{}
 			;
-test:			IF comparison THEN statementGroup ENDIF
-			| IF comparison THEN statementGroup ELSE statementGroup ENDIF
+test:			IF comparison THEN statementGroup elseOption ENDIF
+			;
+elseOption:		ELSE statementGroup
+			|	
 			;
 loop:			WHILE comparison DO statementGroup ENDWHILE
 			| REPEAT statementGroup UNTIL comparison ENDREPEAT
 			| FOR variable ASSIGN expression TO expression DO statementGroup ENDFOR
 			| PARFOR variable ASSIGN expression TO expression parMod DO statementGroup ENDPARFOR
 			;
-parMod:			reduceGroup
-			| PRIVATE varList reduceGroup
+parMod:			privateVarListOption reduceGroup
 			;
-reduceGroup:		|
-			reduceGroup REDUCE reduceOp varList
+privateVarListOption:	PRIVATE varList
+			|
+			;
+reduceGroup:		reduceGroup REDUCE reduceOp varList
+			|
 			;
 reduceOp:		'+'				{}
 			|'-'				{}
@@ -155,11 +161,11 @@ procName:		IDENTIFIER				{}
 			;
 parameters:		parameter parameterGroup
 			;
-parametersOption:	|
-			parameters
+parametersOption:	parameters
+			|
 			;
-parameterGroup:		|
-			parameterGroup ',' parameter 
+parameterGroup:		parameterGroup ',' parameter
+			| 
 			;
 parameter:		passBy variable ':' type
 			;
@@ -172,8 +178,8 @@ procCall:		variable '(' arguments ')'
 			;
 arguments:		expression expressionGroup
 			;
-expressionGroup:	|
-			expressionGroup ',' expression 
+expressionGroup:	expressionGroup ',' expression
+			| 
 			;
 
 %%
