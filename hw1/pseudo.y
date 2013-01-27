@@ -20,7 +20,7 @@
 
 // terminal token declaration
 %token ASSIGN VAR BEGINSYM END
-%token IF THEN ELSE ENDIF
+%token THEN ENDIF
 %token WHILE DO ENDWHILE
 %token REPEAT UNTIL ENDREPEAT
 %token FOR TO ENDFOR PARFOR ENDPARFOR
@@ -29,6 +29,11 @@
 %token READ WRITE
 %token IN OUT INOUT REF
 %token INT REAL
+%token END_OF_FILE
+
+
+%nonassoc IF
+%nonassoc ELSE
 
 // type information for terminal tokens: identifiers and numbers
 %token<double_val> NUMBER
@@ -52,7 +57,7 @@
  * For EBNF -> BNF rules: http://lampwww.epfl.ch/teaching/archive/compilation-ssc/2000/part4/parsing/node3.html
  */
 
-program: 		block END
+program: 		block END_OF_FILE
 			;
 variable:		IDENTIFIER				{}
 			;
@@ -99,14 +104,15 @@ expression:		variable
 			| NUMBER
 			| expression arithmetricOp expression
 			| INT '(' expression ')'
-			| sign expression %prec UMINUS
+			| '+' expression %prec UPLUS
+			| '-' expression %prec UMINUS
 			;
 /*signOption:		|
 			sign
 			;*/
-sign:			'+' UPLUS			{}
-			| '-' UMINUS			{}
-			;
+/*sign:			'+' %prec UPLUS			{}
+			| '-' %prec UMINUS		{}
+			;*/
 arithmetricOp:		'*'				{}
 			| '/'				{}
 			| '+'				{}

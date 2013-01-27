@@ -60,6 +60,7 @@ NOT			{return NOT;}
 "<"			{return LT;}
 ">="			{return GTE;}
 "<="			{return LTE;}
+<<EOF>>			{return END_OF_FILE;}
 
 {whitespace}		;  /* ignore whitespace */
 
