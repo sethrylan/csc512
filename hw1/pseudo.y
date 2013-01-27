@@ -59,12 +59,10 @@ program: 		block END_OF_FILE			{exit(0);}
 			;
 variable:		IDENTIFIER				{}
 			;
-block:			declarationsOption BEGINSYM statementGroup END
+block:			declarations BEGINSYM statementGroup END
+			| BEGINSYM statementGroup END
 			;
 statementGroup:		statementGroup statement
-			| 
-			;
-declarationsOption:	declarations
 			| 
 			;
 declarations:		VAR varListGroup
@@ -127,20 +125,16 @@ comparison:		expression comparisonOp expression
 logicOp:		AND				{}
 			| OR				{}
 			;
-test:			IF comparison THEN statementGroup elseOption ENDIF
-			;
-elseOption:		ELSE statementGroup
-			|	
+test:			IF comparison THEN statementGroup ENDIF
+			| IF comparison THEN statementGroup ELSE statementGroup ENDIF
 			;
 loop:			WHILE comparison DO statementGroup ENDWHILE
 			| REPEAT statementGroup UNTIL comparison ENDREPEAT
 			| FOR variable ASSIGN expression TO expression DO statementGroup ENDFOR
 			| PARFOR variable ASSIGN expression TO expression parMod DO statementGroup ENDPARFOR
 			;
-parMod:			privateVarListOption reduceGroup
-			;
-privateVarListOption:	PRIVATE varList
-			|
+parMod:			reduceGroup
+			| PRIVATE varList reduceGroup
 			;
 reduceGroup:		reduceGroup REDUCE reduceOp varList
 			|
