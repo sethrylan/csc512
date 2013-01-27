@@ -2,6 +2,9 @@
 	#ifndef ASSIGN
 	#include "pseudo.tab.h"
 	#endif
+	
+	#define yyterminate() return END
+
 %}
 
 %option	yylineno
@@ -10,7 +13,7 @@
 digit		[0-9]
 alpha		[a-fA-F]
 whitespace	[ \t\n\r]
-operator	[+-/\*]|DIV|MOD
+operator	[-+/\*]|DIV|MOD
 id		{alpha}({alpha}|{digit})*
 
 %%
@@ -34,12 +37,16 @@ TO			{return TO;}
 ENDFOR			{return ENDFOR;}
 PARFOR			{return PARFOR;}
 PRIVATE			{return PRIVATE;}
+REDUCE			{return REDUCE;}
 ENDPARFOR		{return ENDPARFOR;}
 PROC			{return PROC;}
 ENDPROC			{return ENDPROC;}
+PARPROC			{return PARPROC;}
+ENDPARPROC		{return ENDPARPROC;}
 IN			{return IN;}
 OUT			{return OUT;}
 INOUT			{return INOUT;}
+REF			{return REF;}
 READ			{return READ;}
 WRITE			{return WRITE;}
 INT			{return INT;}
@@ -58,9 +65,13 @@ NOT			{return NOT;}
 
 {id}			{yylval.str_ptr = strdup(yytext);
 			    return IDENTIFIER;}   
-			    
+			  
+-?{digit}+		{yylval.double_val = atof(yytext);
+			 return INT;
+			}
+			
 -?{digit}*\.?{digit}* 	{yylval.double_val = atof(yytext);
-			 return NUMBER;
+			 return REAL;
 			}
 			
 {operator}		{return *yytext;}
