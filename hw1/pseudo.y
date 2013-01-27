@@ -40,16 +40,15 @@
 %token<str_ptr> IDENTIFIER
 
 // associativity and precedence of operators
+%right ASSIGN
 %left GTE LTE EQ NEQ GT LT
-%left '-'
-%left '+' 
-%left '*'
-%left '/'
+%left '+' '-' 
+%left '*' '/'
 %left "DIV" "MOD"
 %left OR
 %left AND
 %right NOT
-%nonassoc UMINUS UPLUS
+%nonassoc UMINUS
 
 %%
 
@@ -102,17 +101,16 @@ assignment:		variable ASSIGN expression
 expression:		variable
 			| variable '[' expression ']' 
 			| NUMBER
-			| expression arithmetricOp expression
+			| expression arithmetricOp expression %prec '*'
 			| INT '(' expression ')'
-			| '+' expression %prec UPLUS
-			| '-' expression %prec UMINUS
+			| sign expression %prec UMINUS
 			;
 /*signOption:		|
 			sign
 			;*/
-/*sign:			'+' %prec UPLUS			{}
+sign:			'+' %prec UMINUS		{}
 			| '-' %prec UMINUS		{}
-			;*/
+			;
 arithmetricOp:		'*'				{}
 			| '/'				{}
 			| '+'				{}
@@ -128,7 +126,7 @@ comparisonOp:		EQ				{}
 			| GTE				{}
 			;
 comparison:		expression comparisonOp expression
-			| comparison logicOp comparison
+			| comparison logicOp comparison %prec AND
 			| NOT comparison
 			;
 logicOp:		AND				{}
