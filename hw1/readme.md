@@ -1,12 +1,12 @@
-### CSC512 Homework 1 ###
+# CSC512 Homework 1 #
 
-## Build Instructions ##
+### Build Instructions
 
 ```
 make
 ```
 
-## Run Instuctions ##
+### Run Instuctions
 
 Three executables produced:
 	1. calc - a simple calculator with a Flex-generated lexical scanner
@@ -16,8 +16,8 @@ Three executables produced:
 calc and calc2 can be used in interpretive-mode and exitted with ^C; pseudo expects EOF to end.
 
 	
-## Valid Test Input ##
-
+# Valid Test Input
+```
 VAR a,b:REAL;c:INT[42];
 BEGIN
 c:=thx[1138]*INT(10);
@@ -27,28 +27,33 @@ IF b
 1 AND b<>b OR NOT b=b THEN WRITE(a); ELSE READ(a); ENDIF;
 a:=110/10;
 END
-===================
+```
+```
 VAR
 BEGIN
 END
-===================
+```
+```
 BEGIN
 END
-===================
+```
+```
 BEGIN
 PROC procName() BEGIN END ENDPROC;
 PROC betterProc(IN in:INT, OUT out:INT, INOUT inout:INT, REF r:REAL) BEGIN END ENDPROC;
 procName(no, arguments, here);
 betterProc(really, arguments);
 END
-===================
+```
+```
 BEGIN
 a := ++++10;
 a := --10;
 a := -+-+-10;
 a := +-+-+--10;
 END
-===================
+```
+```
 BEGIN
 WHILE a=b DO
 	REPEAT
@@ -61,23 +66,23 @@ WHILE a=b DO
 	ENDPARFOR;
 ENDWHILE;
 END
+```
 
-
-## Invalid Test Input ##
-
+### Invalid Test Input 
+```
 a:=-1.0+2.0;
 IF a THEN WRITE(a) ENDIF;
 IF a>0 THEN WRITE(a) ENDIF;
 a:=1;
 a-;
 test scanner #;
-
-
+```
+```
 VAR a,b:REAL;
 BEGIN
 a:=-1.0+0.20;
 IF b>1 THEN WRITE(PRIVATE); ENDIF;
 a:=110;
 END
-
+```
 
