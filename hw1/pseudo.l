@@ -11,7 +11,7 @@
 
 /* defninitions: digit, letter, ... */
 digit		[0-9]
-alpha		[a-fA-F]
+alpha		[a-zA-Z]
 whitespace	[ \t\n\r]
 operator	[-+/\*]|DIV|MOD
 id		{alpha}({alpha}|{digit})*
@@ -60,10 +60,12 @@ NOT			{return NOT;}
 "<"			{return LT;}
 ">="			{return GTE;}
 "<="			{return LTE;}
-"DIV"			{return DIV;}
-"MOD"			{return MOD;}
-"MIN"			{return MIN;}
-"MAX"			{return MAX;}
+DIV			{return DIV;}
+MOD			{return MOD;}
+MIN			{return MIN;}
+MAX			{return MAX;}
+\(			{return LPAREN;}
+\)			{return RPAREN;}
 <<EOF>>			{return END_OF_FILE;}
 
 {whitespace}		;  /* ignore whitespace */

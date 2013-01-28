@@ -30,6 +30,7 @@
 %token IN OUT INOUT REF
 %token INT REAL
 %token MIN MAX
+%token LPAREN RPAREN
 %token END_OF_FILE 
 
 // type information for terminal tokens: identifiers and numbers
@@ -45,9 +46,9 @@
 %left OR
 %left AND
 %right NOT
+%right UMINUS
 %nonassoc IF
 %nonassoc ELSE
-%nonassoc UMINUS
 
 %%
 
@@ -105,11 +106,11 @@ expression:		variable
 			| expression '*' expression
 			| expression '+' expression
 			| expression '-' expression
-			| INT '(' expression ')'
+			| INT LPAREN expression RPAREN
 			| sign expression %prec UMINUS
 			;
-sign:			'+' %prec UMINUS		{}
-			| '-' %prec UMINUS		{}
+sign:			'+'				{}
+			| '-'				{}
 			;
 comparisonOp:		EQ				{}
 			| NEQ				{}
@@ -139,17 +140,17 @@ parMod:			reduceGroup
 reduceGroup:		reduceGroup REDUCE reduceOp varList
 			|
 			;
-reduceOp:		'+'				{}
-			|'-'				{}
-			|MIN				{}
-			|MAX				{}
+reduceOp:		'-'				{}
+			|'+'				{}
+			| MIN				{}
+			| MAX				{}
 			;
-input:			READ '(' variable ')'
+input:			READ LPAREN variable RPAREN
 			;
-output:			WRITE '(' expression ')'
+output:			WRITE LPAREN expression RPAREN
 			;
-procedure:		PROC procName '(' parametersOption ')' block ENDPROC
-			| PARPROC procName '(' parametersOption ')' block ENDPARPROC
+procedure:		PROC procName LPAREN parametersOption RPAREN block ENDPROC
+			| PARPROC procName LPAREN parametersOption RPAREN block ENDPARPROC
 			;
 procName:		IDENTIFIER				{}
 			;
@@ -168,9 +169,10 @@ passBy:			IN
 			| INOUT
 			| REF
 			;
-procCall:		variable '(' arguments ')'
+procCall:		variable LPAREN arguments RPAREN
 			;
 arguments:		expression expressionGroup
+			|					/* added epsilon alternative not in EBNF spec */
 			;
 expressionGroup:	expressionGroup ',' expression
 			| 
