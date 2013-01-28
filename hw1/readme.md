@@ -24,7 +24,7 @@ c:=thx[1138]*INT(10);
 a:=-1.0+0.20/0.1;
 IF b
 	>
-1 AND b<>b OR b=b THEN WRITE(a); ELSE READ(a); ENDIF;
+1 AND b<>b OR NOT b=b THEN WRITE(a); ELSE READ(a); ENDIF;
 a:=110/10;
 END
 ===================
@@ -43,8 +43,10 @@ betterProc(really, arguments);
 END
 ===================
 BEGIN
-a := ----10;
-b := +-+-+--10;
+a := ++++10;
+a := --10;
+a := -+-+-10;
+a := +-+-+--10;
 END
 ===================
 BEGIN

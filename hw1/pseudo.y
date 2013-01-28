@@ -39,14 +39,14 @@
 
 // associativity and precedence of operators
 %right ASSIGN
+%left AND
+%left OR
+%left NOT
 %left GTE LTE EQ NEQ GT LT
 %left '+' '-' 
 %left '*' '/'
 %left DIV MOD
-%left OR
-%left AND
-%right NOT
-%right UMINUS
+%right USIGN
 %nonassoc IF
 %nonassoc ELSE
 
@@ -107,11 +107,12 @@ expression:		variable
 			| expression '+' expression
 			| expression '-' expression
 			| INT LPAREN expression RPAREN
-			| sign expression %prec UMINUS
+			| '+' expression %prec USIGN
+			| '-' expression %prec USIGN
 			;
-sign:			'+'				{}
-			| '-'				{}
-			;
+/*sign:			'-'				{}
+			| '+'				{}
+			;*/
 comparisonOp:		EQ				{}
 			| NEQ				{}
 			| LT				{}
