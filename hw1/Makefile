@@ -42,10 +42,9 @@ test: all testfiles
 		expected_file=$(TESTDIR)/$$testname.expected; \
 		echo " TESTING $$testname"; \
 		./pseudo < $$input_file 2> $$output_file; \
-		diff $$expected_file $$output_file > /dev/null || echo -ne "\r  ....FAILED. See .output file for failures." >&2;  \
-# 		rc=`expr $$rc + $$?`;\
-		count=`expr $$count + 1`; \
+		diff $$expected_file $$output_file > /dev/null || (echo -ne "\r  ....FAILED. See $$testname.output for failures." >&2 && false);  \
+		rc=`expr $$rc + $$?`; count=`expr $$count + 1`;\
 	done; \
-	echo; echo " Tests run: $$count" #  Failures: $$rc"
+	echo; echo " Tests run: $$count,  Failures: $$rc"
 
 testfiles: $(TESTFILES)
