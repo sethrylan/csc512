@@ -1,0 +1,10 @@
+VAR a:INT;
+BEGIN
+	PARFOR ii:=iii TO 5*5+2 PRIVATE x,y,z REDUCE - xx,yy,zz DO 
+		WRITE(ii);
+		PARFOR i:=1 TO 5 DO ENDPARFOR;
+	ENDPARFOR;
+	PARFOR ii:=iii TO 5*5+2 REDUCE + xx,yy,zz DO ENDPARFOR;
+	PARFOR ii:=iii TO 5*5+2 REDUCE MAX xx,yy,zz DO ENDPARFOR;
+	PARFOR ii:=iii TO 5*5+2 REDUCE MIN xx,yy,zz DO ENDPARFOR;
+END
