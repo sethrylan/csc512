@@ -1,5 +1,12 @@
 VAR a:INT;
 BEGIN
 	a:=iiii*iiiiiii*-1;
+	i:=-1*-1;
+	i:=-1+i;
 	i:=i-1;
+	i:=-1-i;
+	i:=-1-1;
+	i:=-1--1;
+	i:=--1---1;
+	i:=INT(-10)*REAL(-20);
 END

@@ -66,7 +66,8 @@ MIN			{return MIN;}
 MAX			{return MAX;}
 \(			{return LPAREN;}
 \)			{return RPAREN;}
---			;  /* ignore dual negation */
+--			{return '+';}  /* resolve dual negation */
+"++"			{return '+';}  /* ignore dual positives */
 <<EOF>>			{return END_OF_FILE;}
 
 {whitespace}		;  /* ignore whitespace */
