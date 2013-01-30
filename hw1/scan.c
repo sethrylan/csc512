@@ -11,6 +11,8 @@ each newline.
 #include <ctype.h>
 #include "calc.tab.h"
 
+#define TEST 1
+
 FILE *yyin;
 char* yytext;
 int yylineno;
@@ -35,28 +37,46 @@ int yylex(void) {
 	while(c = getc(yyin)){
 		char buffer[] = "";
 
-		s0:
+		s1:
 		if(isdigit(c)) {
 			sprintf(buffer, "%s%c", buffer, c);
+			#ifdef TEST
+			printf("s1 (%c is digit; buffer=%s)\n",c,buffer);
+			#endif
 			c = getc(yyin);
 			goto s3;
 		} else if(c=='.') {
 			sprintf(buffer, "%s%c", buffer, c);
+			#ifdef TEST
+			printf("s1 (%c is .; buffer=%s)\n",c,buffer);
+			#endif
 			c = getc(yyin);
 			goto s2;
 		} else if(is_op(c)) {
+			#ifdef TEST
+			printf("s1 (%c is op; buffer=%s)\n",c,buffer);
+			#endif
 			goto s5;
 		} else {
+			#ifdef TEST
+			printf("s1 (error)\n");
+			#endif
 			goto err;
 		}
 
 		s2:
 		if(isdigit(c)) {
 			sprintf(buffer, "%s%c", buffer, c);
+			#ifdef TEST
+			printf("s2 (%c is digit; buffer=%s)\n",c,buffer);
+			#endif
 			c = getc(yyin);
 			goto s4;
 		} else {
 			yylval.double_val = atof(buffer);
+			#ifdef TEST
+			printf("s2 (return NUMBER; buffer=%s)\n",buffer);
+			#endif
 			ungetc(c, yyin);
 			return NUMBER;
 		}
@@ -64,14 +84,23 @@ int yylex(void) {
 		s3:
 		if (isdigit(c)) {
 			sprintf(buffer, "%s%c", buffer, c);
+			#ifdef TEST
+			printf("s3 (%c is digit; buffer=%s)\n",c,buffer);
+			#endif
 			c = getc(yyin);
 			goto s3;
 		} else if(c=='.') {
 			sprintf(buffer, "%s%c", buffer, c);
+			#ifdef TEST
+			printf("s3 (%c is .; buffer=%s)\n",c,buffer);
+			#endif
 			c = getc(yyin);
 			goto s2;
 		} else {
 			yylval.double_val = atof(buffer);
+			#ifdef TEST
+			printf("s3 (return NUMBER; buffer=%s)\n",buffer);
+			#endif
 			ungetc(c, yyin);
 			return NUMBER;
 		}
@@ -79,18 +108,30 @@ int yylex(void) {
 		s4:
 		if (isdigit(c)) {
 			sprintf(buffer, "%s%c", buffer, c);
+			#ifdef TEST
+			printf("s4 (%c is digit; buffer=%s)\n",c,buffer);
+			#endif
 			c = getc(yyin);
 			goto s4;
 		} else {
 			yylval.double_val = atof(buffer);
+			#ifdef TEST
+			printf("s4 (return NUMBER; buffer=%s)\n",buffer);
+			#endif
 			ungetc(c, yyin);
 			return NUMBER;
 		}
 
 		s5:
 		if(c == '\n') {
+			#ifdef TEST
+			printf("s5 (c is newline; buffer=%s)\n",buffer);
+			#endif
 			yylineno++;
 		}
+		#ifdef TEST
+		printf("s5 (return character, %c; buffer=%s)\n",c,buffer);
+		#endif
 		return c;
 
 		err:
