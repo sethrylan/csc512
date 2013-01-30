@@ -27,6 +27,14 @@ int is_op(int c) {
 	}
 }
 
+int is_digit(int c) {
+	if(c=='0'||c=='1'||c=='2'||c=='3'||c=='4'||c=='5'||c=='6'||c=='7'||c=='8'||c=='9') {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
 int yylex(void) {
 	if(!yyin) {
 		#ifdef TEST
@@ -45,7 +53,7 @@ int yylex(void) {
 		#endif
 
 		s1:
-		if(isdigit(c)) {
+		if(is_digit(c)) {
 			sprintf(buffer, "%s%c", buffer, c);
 			#ifdef TEST
 			printf("s1 (%c is digit; buffer=%s)\n",c,buffer);
@@ -72,7 +80,7 @@ int yylex(void) {
 		}
 
 		s2:
-		if(isdigit(c)) {
+		if(is_digit(c)) {
 			sprintf(buffer, "%s%c", buffer, c);
 			#ifdef TEST
 			printf("s2 (%c is digit; buffer=%s)\n",c,buffer);
@@ -89,7 +97,7 @@ int yylex(void) {
 		}
 
 		s3:
-		if (isdigit(c)) {
+		if (is_digit(c)) {
 			sprintf(buffer, "%s%c", buffer, c);
 			#ifdef TEST
 			printf("s3 (%c is digit; buffer=%s)\n",c,buffer);
@@ -113,7 +121,7 @@ int yylex(void) {
 		}
 
 		s4:
-		if (isdigit(c)) {
+		if (is_digit(c)) {
 			sprintf(buffer, "%s%c", buffer, c);
 			#ifdef TEST
 			printf("s4 (%c is digit; buffer=%s)\n",c,buffer);
