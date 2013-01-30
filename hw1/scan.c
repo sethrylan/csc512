@@ -29,6 +29,9 @@ int is_op(int c) {
 
 int yylex(void) {
 	if(!yyin) {
+		#ifdef TEST
+		printf("yyin is null; assigning stdin\n");
+		#endif
 		yyin = stdin;
 	}
 
@@ -36,6 +39,10 @@ int yylex(void) {
 
 	while(c = getc(yyin)){
 		char buffer[] = "";
+
+		#ifdef TEST
+		printf("c = %c; buffer = %s\n", c, buffer);
+		#endif
 
 		s1:
 		if(isdigit(c)) {
