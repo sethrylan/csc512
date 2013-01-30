@@ -5,7 +5,6 @@
 	extern char* yytext;	
 	extern int yylineno; 
 	int yyerror(char *);
-
 %}
 
 /* defintions: token, precedence, types etc. */
@@ -46,7 +45,7 @@
 %left '-' '+' 
 %left '*' '/'
 %left DIV MOD
-%nonassoc USIGN
+%left USIGN
 %nonassoc IF
 %nonassoc ELSE
 
@@ -80,7 +79,6 @@ type:			basicType
 			| arrayType
 			;
 arrayType:		basicType '[' expression ']'
-			| basicType '[' error ']'
 			;
 basicType:		INT				{}
 			| REAL				{}
@@ -97,21 +95,19 @@ statement:		assignment ';'
 			;
 assignment:		variable ASSIGN expression
 			| variable '[' expression ']' ASSIGN expression
-			| variable '[' error ']' ASSIGN expression
 			;
 expression:		variable
 			| variable '[' expression ']' 
-			| variable '[' error ']' 
 			| NUMBER
+			| '+' expression %prec USIGN
+			| '-' expression %prec USIGN	{/*printf("uminus rule triggered at %d.\n", yylineno);*/}
 			| expression DIV expression
 			| expression MOD expression
 			| expression '/' expression
 			| expression '*' expression
 			| expression '+' expression	{/*printf("expr+expr rule triggered at %d.\n", yylineno);*/}
-			| expression '-' expression	{printf("expr-expr rule triggered at %d.\n", yylineno);}
+			| expression '-' expression	{/*printf("expr-expr rule triggered at %d.\n", yylineno);*/}
 			| INT LPAREN expression RPAREN
-			| '+' expression %prec USIGN
-			| '-' expression %prec USIGN	{printf("uminus rule triggered at %d.\n", yylineno);}
 			;
 comparisonOp:		EQ				{}
 			| NEQ				{}
@@ -139,16 +135,14 @@ parMod:			reduceGroup
 reduceGroup:		reduceGroup REDUCE reduceOp varList
 			|
 			;
-reduceOp:		'-'				{printf("-reduceop rule triggered at %d.\n", yylineno);}
+reduceOp:		'-'				{/*printf("-reduceop rule triggered at %d.\n", yylineno);*/}
 			|'+'				{}
 			| MIN				{}
 			| MAX				{}
 			;
 input:			READ LPAREN variable RPAREN
-			| READ LPAREN error RPAREN
 			;
 output:			WRITE LPAREN expression RPAREN
-			| WRITE LPAREN error RPAREN
 			;
 procedure:		PROC procName LPAREN parametersOption RPAREN block ENDPROC
 			| PARPROC procName LPAREN parametersOption RPAREN block ENDPARPROC
@@ -158,7 +152,6 @@ procName:		IDENTIFIER				{}
 parameters:		parameter parameterGroup
 			;
 parametersOption:	parameters
-			| error
 			|
 			;
 parameterGroup:		parameterGroup ',' parameter
@@ -172,7 +165,6 @@ passBy:			IN
 			| REF
 			;
 procCall:		variable LPAREN arguments RPAREN
-			| variable LPAREN error RPAREN
 			;
 arguments:		expression expressionGroup
 			|					/* added epsilon alternative not in EBNF spec */

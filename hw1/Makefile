@@ -3,7 +3,6 @@ PROJDIRS := .
 TESTDIR := ./test
 TESTFILES := $(shell find $(TESTDIR) -type f -name "*.input")
 
-
 all: calc calc2 pseudo
 
 pseudo: pseudo.tab.c pseudo.yy.c

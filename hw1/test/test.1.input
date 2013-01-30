@@ -3,5 +3,7 @@ BEGIN
 c:=thx[1138]*INT(10);
 a:=-1.0+0.20/0.1;
 IF b>1 AND b<>b OR NOT b=b THEN WRITE(a); ELSE READ(a); ENDIF;
+IF z>=.45 AND zz<>12. OR zzz[z]=-1.2 OR z<-.2 OR z>-2. THEN 
+ENDIF;
 a:=110/10;
 END

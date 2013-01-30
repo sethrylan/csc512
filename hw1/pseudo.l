@@ -1,7 +1,5 @@
 %{
-	#ifndef ASSIGN
 	#include "pseudo.tab.h"
-	#endif
 	
 	#define yyterminate() return END
 
@@ -11,10 +9,10 @@
 
 /* defninitions: digit, letter, ... */
 digit		[0-9]
-alpha		[a-zA-Z]
+letter		[a-zA-Z_]
 whitespace	[ \t\n\r]
-operator	[-+/\*]|DIV|MOD
-id		{alpha}({alpha}|{digit})*
+operator	[\-+/\*]|DIV|MOD
+id		{letter}({letter}|{digit})*
 
 %%
 
@@ -66,22 +64,27 @@ MIN			{return MIN;}
 MAX			{return MAX;}
 \(			{return LPAREN;}
 \)			{return RPAREN;}
---			{return '+';}  /* resolve dual negation */
-"++"			{return '+';}  /* ignore dual positives */
 <<EOF>>			{return END_OF_FILE;}
 
 {whitespace}		;  /* ignore whitespace */
 
 {id}			{yylval.str_ptr = strdup(yytext);
 			    return IDENTIFIER;}
-			
--?{digit}*\.?{digit}* 	{yylval.double_val = atof(yytext);
+			    
+{operator}		{//printf("operator: %c\n", *yytext);
+			 return *yytext;}
+
+{digit}+\.?{digit}*	{//printf("NUMBER: %g\n", atof(yytext));
+			 yylval.double_val = atof(yytext);
 			 return NUMBER;
 			 // TODO: use resWord() and symLookup to return symbol table index
 			}
-			
-{operator}		{return *yytext;}
 
+{digit}*\.{digit}+	{//printf("NUMBER: %g\n", atof(yytext));
+			 yylval.double_val = atof(yytext);
+			 return NUMBER;
+			}
+			
 [,:;\[\]()]		{return *yytext;}
 
 
