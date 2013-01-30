@@ -8,7 +8,7 @@ each newline.
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <ctype.h>
+#include <string.h>
 #include "calc.tab.h"
 
 #define TEST 1
@@ -27,12 +27,11 @@ int is_op(int c) {
 	}
 }
 
-int is_digit(int c) {
-	if(c=='0'||c=='1'||c=='2'||c=='3'||c=='4'||c=='5'||c=='6'||c=='7'||c=='8'||c=='9') {
-		return 1;
-	} else {
-		return 0;
-	}
+char *to_str(char c) {
+	char *t = (char *) malloc(2);
+	t[0] = c;
+	t[1] = '\0';
+	return t;
 }
 
 int yylex(void) {
@@ -46,30 +45,30 @@ int yylex(void) {
 	int c;
 
 	while(c = getc(yyin)){
-		char buffer[] = "";
+		char s[] = "";
 
 		#ifdef TEST
-		printf("c = %c; buffer = %s\n", c, buffer);
+		printf("c = %c; s = %s\n", c, s);
 		#endif
 
 		s1:
-		if(is_digit(c)) {
-			sprintf(buffer, "%s%c", buffer, c);
+		if(isdigit(c)) {
+			strcat(s, to_str(c));
 			#ifdef TEST
-			printf("s1 (%c is digit; buffer=%s)\n",c,buffer);
+			printf("s1 (%c is digit; s=%s)\n",c,s);
 			#endif
 			c = getc(yyin);
 			goto s3;
 		} else if(c=='.') {
-			sprintf(buffer, "%s%c", buffer, c);
+			strcat(s, to_str(c));
 			#ifdef TEST
-			printf("s1 (%c is .; buffer=%s)\n",c,buffer);
+			printf("s1 (%c is .; s=%s)\n",c,s);
 			#endif
 			c = getc(yyin);
 			goto s2;
 		} else if(is_op(c)) {
 			#ifdef TEST
-			printf("s1 (%c is op; buffer=%s)\n",c,buffer);
+			printf("s1 (%c is op; s=%s)\n",c,s);
 			#endif
 			goto s5;
 		} else {
@@ -80,58 +79,58 @@ int yylex(void) {
 		}
 
 		s2:
-		if(is_digit(c)) {
-			sprintf(buffer, "%s%c", buffer, c);
+		if(isdigit(c)) {
+			strcat(s, to_str(c));
 			#ifdef TEST
-			printf("s2 (%c is digit; buffer=%s)\n",c,buffer);
+			printf("s2 (%c is digit; s=%s)\n",c,s);
 			#endif
 			c = getc(yyin);
 			goto s4;
 		} else {
-			yylval.double_val = atof(buffer);
+			yylval.double_val = atof(s);
 			#ifdef TEST
-			printf("s2 (return NUMBER; buffer=%s)\n",buffer);
+			printf("s2 (return NUMBER; s=%s)\n",s);
 			#endif
 			ungetc(c, yyin);
 			return NUMBER;
 		}
 
 		s3:
-		if (is_digit(c)) {
-			sprintf(buffer, "%s%c", buffer, c);
+		if (isdigit(c)) {
+			strcat(s, to_str(c));
 			#ifdef TEST
-			printf("s3 (%c is digit; buffer=%s)\n",c,buffer);
+			printf("s3 (%c is digit; s=%s)\n",c,s);
 			#endif
 			c = getc(yyin);
 			goto s3;
 		} else if(c=='.') {
-			sprintf(buffer, "%s%c", buffer, c);
+			strcat(s, to_str(c));
 			#ifdef TEST
-			printf("s3 (%c is .; buffer=%s)\n",c,buffer);
+			printf("s3 (%c is .; s=%s)\n",c,s);
 			#endif
 			c = getc(yyin);
 			goto s2;
 		} else {
-			yylval.double_val = atof(buffer);
+			yylval.double_val = atof(s);
 			#ifdef TEST
-			printf("s3 (return NUMBER; buffer=%s)\n",buffer);
+			printf("s3 (return NUMBER; s=%s)\n",s);
 			#endif
 			ungetc(c, yyin);
 			return NUMBER;
 		}
 
 		s4:
-		if (is_digit(c)) {
-			sprintf(buffer, "%s%c", buffer, c);
+		if (isdigit(c)) {
+			strcat(s, to_str(c));
 			#ifdef TEST
-			printf("s4 (%c is digit; buffer=%s)\n",c,buffer);
+			printf("s4 (%c is digit; s=%s)\n",c,s);
 			#endif
 			c = getc(yyin);
 			goto s4;
 		} else {
-			yylval.double_val = atof(buffer);
+			yylval.double_val = atof(s);
 			#ifdef TEST
-			printf("s4 (return NUMBER; buffer=%s)\n",buffer);
+			printf("s4 (return NUMBER; s=%s)\n",s);
 			#endif
 			ungetc(c, yyin);
 			return NUMBER;
@@ -140,12 +139,12 @@ int yylex(void) {
 		s5:
 		if(c == '\n') {
 			#ifdef TEST
-			printf("s5 (c is newline; buffer=%s)\n",buffer);
+			printf("s5 (c is newline; s=%s)\n",s);
 			#endif
 			yylineno++;
 		}
 		#ifdef TEST
-		printf("s5 (return character, %c; buffer=%s)\n",c,buffer);
+		printf("s5 (return character, %c; s=%s)\n",c,s);
 		#endif
 		return c;
 
@@ -153,4 +152,6 @@ int yylex(void) {
 		yyerror("Unknown character");
 
 	}
+
+
 }
