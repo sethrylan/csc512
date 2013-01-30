@@ -9,11 +9,12 @@ make
 ### Run Instuctions
 
 Three executables produced:
-	1. calc - a simple calculator with a Flex-generated lexical scanner
-	2. calc2 - a simple calcultor with a handwritten lexical scanner
-	3. psuedo
+
+1. ```calc```		- a simple calculator with a Flex-generated lexical scanner
+1. ```calc2```	- a simple calcultor with a handwritten lexical scanner
+1. ```psuedo```	- a simple language lexer/parser
 	
-calc and calc2 can be used in interpretive-mode and exitted with ^C; pseudo expects EOF to end.
+```calc``` and ```calc2``` can be used in interpretive-mode and exitted with ^C; ```pseudo``` expects EOF to end.
 
 	
 ### Automated Testing
