@@ -57,14 +57,12 @@ int yylex(void) {
 			#ifdef TEST
 			printf("s1 (%c is digit; s=%s)\n",c,s);
 			#endif
-			c = getc(yyin);
 			goto s3;
 		} else if(c=='.') {
 			strcat(s, to_str(c));
 			#ifdef TEST
 			printf("s1 (%c is .; s=%s)\n",c,s);
 			#endif
-			c = getc(yyin);
 			goto s2;
 		} else if(is_op(c)) {
 			#ifdef TEST
@@ -78,7 +76,7 @@ int yylex(void) {
 			goto err;
 		}
 
-		s2:
+		s2: c = getc(yyin);
 		if(isdigit(c)) {
 			strcat(s, to_str(c));
 			#ifdef TEST
@@ -95,20 +93,18 @@ int yylex(void) {
 			return NUMBER;
 		}
 
-		s3:
+		s3: c = getc(yyin);
 		if (isdigit(c)) {
 			strcat(s, to_str(c));
 			#ifdef TEST
 			printf("s3 (%c is digit; s=%s)\n",c,s);
 			#endif
-			c = getc(yyin);
 			goto s3;
 		} else if(c=='.') {
 			strcat(s, to_str(c));
 			#ifdef TEST
 			printf("s3 (%c is .; s=%s)\n",c,s);
 			#endif
-			c = getc(yyin);
 			goto s2;
 		} else {
 			yylval.double_val = atof(s);
@@ -119,13 +115,12 @@ int yylex(void) {
 			return NUMBER;
 		}
 
-		s4:
+		s4: c = getc(yyin);
 		if (isdigit(c)) {
 			strcat(s, to_str(c));
 			#ifdef TEST
 			printf("s4 (%c is digit; s=%s)\n",c,s);
 			#endif
-			c = getc(yyin);
 			goto s4;
 		} else {
 			yylval.double_val = atof(s);
@@ -136,7 +131,7 @@ int yylex(void) {
 			return NUMBER;
 		}
 
-		s5:
+		s5: 
 		if(c == '\n') {
 			#ifdef TEST
 			printf("s5 (c is newline; s=%s)\n",s);
@@ -148,8 +143,7 @@ int yylex(void) {
 		#endif
 		return c;
 
-		err:
-		yyerror("Unknown character");
+		err: yyerror("Unknown character");
 
 	}
 
