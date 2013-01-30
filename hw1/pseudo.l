@@ -9,7 +9,7 @@
 
 /* defninitions: digit, letter, ... */
 digit		[0-9]
-letter		[a-zA-Z_]
+letter		[a-zA-Z_$]
 whitespace	[ \t\n\r]
 operator	[\-+/\*]|DIV|MOD
 id		{letter}({letter}|{digit})*
@@ -69,7 +69,7 @@ MAX			{return MAX;}
 {whitespace}		;  /* ignore whitespace */
 
 {id}			{yylval.str_ptr = strdup(yytext);
-			    return IDENTIFIER;}
+			 return IDENTIFIER;}
 			    
 {operator}		{//printf("operator: %c\n", *yytext);
 			 return *yytext;}
@@ -89,7 +89,7 @@ MAX			{return MAX;}
 
 
 
-.	yyerror("Unknown character");
+.			yyerror("Unknown character");
 
 %%
 

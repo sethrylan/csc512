@@ -45,7 +45,7 @@
 %left '-' '+' 
 %left '*' '/'
 %left DIV MOD
-%left USIGN
+%nonassoc USIGN
 %nonassoc IF
 %nonassoc ELSE
 
@@ -99,8 +99,6 @@ assignment:		variable ASSIGN expression
 expression:		variable
 			| variable '[' expression ']' 
 			| NUMBER
-			| '+' expression %prec USIGN
-			| '-' expression %prec USIGN	{/*printf("uminus rule triggered at %d.\n", yylineno);*/}
 			| expression DIV expression
 			| expression MOD expression
 			| expression '/' expression
@@ -108,6 +106,8 @@ expression:		variable
 			| expression '+' expression	{/*printf("expr+expr rule triggered at %d.\n", yylineno);*/}
 			| expression '-' expression	{/*printf("expr-expr rule triggered at %d.\n", yylineno);*/}
 			| INT LPAREN expression RPAREN
+			| '+' expression %prec USIGN
+			| '-' expression %prec USIGN	{/*printf("uminus rule triggered at %d.\n", yylineno);*/}
 			;
 comparisonOp:		EQ				{}
 			| NEQ				{}
@@ -179,9 +179,7 @@ expressionGroup:	expressionGroup ',' expression
 #include "pseudo.yy.c"
 
 int main(int argc,char *argv[]) {
-  char *result;
-  result = (char *)yyparse();
-  return(1);
+	return yyparse();
 }
 
 /*
@@ -189,6 +187,6 @@ int main(int argc,char *argv[]) {
  * also see http://oreilly.com/linux/excerpts/9780596155971/error-reporting-recovery.html
  */
 int yyerror(char *err) {
-  fprintf(stderr, "%s in line %d at %s\n", err, yylineno, yytext);
+	fprintf(stderr, "%s in line %d at %s\n", err, yylineno, yytext);
 }
 
