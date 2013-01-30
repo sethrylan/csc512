@@ -1,17 +1,17 @@
 /*
-Lexical analyzer which scans and returns a double
-on the stack with the token NUMBER, or the character
-if an operator (+-* / and newline). Whitespace 
-(space and tabs) is ignored. Increments yylineno at
-each newline.
-*/
+ * Lexical analyzer which scans and returns a double
+ * on the stack with the token NUMBER, or the character
+ * if an operator (+-* / and newline). Whitespace 
+ * (space and tabs) is ignored. Increments yylineno at
+ * each newline.
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "calc.tab.h"
 
-#define TEST 1
+#define TEST 0
 
 FILE *yyin;
 char* yytext;
@@ -45,7 +45,7 @@ int yylex(void) {
 	int c;
 
 	while(c = getc(yyin)){
-		char s[] = "";
+		char s[] = "\0";
 
 		#ifdef TEST
 		printf("c = %c; s = %s\n", c, s);
