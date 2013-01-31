@@ -11,7 +11,6 @@
 digit		[0-9]
 letter		[a-zA-Z_$]
 whitespace	[ \t\n\r]
-operator	[\-+/\*]|DIV|MOD
 id		{letter}({letter}|{digit})*
 
 %%
@@ -58,22 +57,25 @@ NOT			{return NOT;}
 "<"			{return LT;}
 ">="			{return GTE;}
 "<="			{return LTE;}
+"+"			{return PLUS;}
+"-"			{return MINUS;}
+"*"			{return MULT;}
+"/"			{return DIVIDE;}
 DIV			{return DIV;}
 MOD			{return MOD;}
 MIN			{return MIN;}
 MAX			{return MAX;}
-\(			{return LPAREN;}
-\)			{return RPAREN;}
+"("			{return LPAREN;}
+")"			{return RPAREN;}
+"["			{return LBRACE;}
+"]"			{return RBRACE;}
 <<EOF>>			{return END_OF_FILE;}
 
 {whitespace}		;  /* ignore whitespace */
 
 {id}			{yylval.str_ptr = strdup(yytext);
 			 return IDENTIFIER;}
-			    
-{operator}		{//printf("operator: %c\n", *yytext);
-			 return *yytext;}
-
+	
 {digit}+\.?{digit}*	{//printf("NUMBER: %g\n", atof(yytext));
 			 yylval.double_val = atof(yytext);
 			 return NUMBER;
@@ -86,8 +88,6 @@ MAX			{return MAX;}
 			}
 			
 [,:;\[\]()]		{return *yytext;}
-
-
 
 .			yyerror("Unknown character");
 

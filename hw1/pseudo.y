@@ -25,14 +25,16 @@
 %token FOR TO ENDFOR PARFOR ENDPARFOR
 %token PRIVATE REDUCE
 %token PROC ENDPROC PARPROC ENDPARPROC
-%token READ WRITE
+%token WRITE
 %token IN OUT INOUT REF
-%token INT REAL
 %token MIN MAX
+%token INT REAL
 %token LPAREN RPAREN
+%token LBRACE RBRACE
 %token END_OF_FILE 
 
 // type information for terminal tokens: identifiers and numbers
+%token<str_ptr> READ
 %token<double_val> NUMBER
 %token<str_ptr> IDENTIFIER
 
@@ -42,8 +44,8 @@
 %left OR
 %left NOT
 %left GTE LTE EQ NEQ GT LT
-%left '-' '+' 
-%left '*' '/'
+%left MINUS PLUS 
+%left MULT DIVIDE
 %left DIV MOD
 %nonassoc USIGN
 %nonassoc IF
@@ -78,7 +80,7 @@ variableGroup:		variableGroup ',' variable
 type:			basicType 
 			| arrayType
 			;
-arrayType:		basicType '[' expression ']'
+arrayType:		basicType LBRACE expression RBRACE
 			;
 basicType:		INT				{}
 			| REAL				{}
@@ -94,20 +96,20 @@ statement:		assignment ';'
 			| error ';'
 			;
 assignment:		variable ASSIGN expression
-			| variable '[' expression ']' ASSIGN expression
+			| variable LBRACE expression RBRACE ASSIGN expression
 			;
 expression:		variable
-			| variable '[' expression ']' 
+			| variable LBRACE expression RBRACE 
 			| NUMBER
 			| expression DIV expression
 			| expression MOD expression
-			| expression '/' expression
-			| expression '*' expression
-			| expression '+' expression	{/*printf("expr+expr rule triggered at %d.\n", yylineno);*/}
-			| expression '-' expression	{/*printf("expr-expr rule triggered at %d.\n", yylineno);*/}
+			| expression DIVIDE expression
+			| expression MULT expression
+			| expression PLUS expression	{/*printf("expr+expr rule triggered at %d.\n", yylineno);*/}
+			| expression MINUS expression	{/*printf("expr-expr rule triggered at %d.\n", yylineno);*/}
 			| INT LPAREN expression RPAREN
-			| '+' expression %prec USIGN
-			| '-' expression %prec USIGN	{/*printf("uminus rule triggered at %d.\n", yylineno);*/}
+			| PLUS expression %prec USIGN
+			| MINUS expression %prec USIGN	{/*printf("uminus rule triggered at %d.\n", yylineno);*/}
 			;
 comparisonOp:		EQ				{}
 			| NEQ				{}
@@ -135,8 +137,8 @@ parMod:			reduceGroup
 reduceGroup:		reduceGroup REDUCE reduceOp varList
 			|
 			;
-reduceOp:		'-'				{/*printf("-reduceop rule triggered at %d.\n", yylineno);*/}
-			|'+'				{}
+reduceOp:		MINUS				{/*printf("-reduceop rule triggered at %d.\n", yylineno);*/}
+			|PLUS				{}
 			| MIN				{}
 			| MAX				{}
 			;
