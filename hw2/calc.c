@@ -11,113 +11,125 @@
  * to right, and constructs a Leftmost derivation of the
  * sentence (hence LL, compared with LR parser).
  *
- *    (http://en.wikipedia.org/wiki/Recursive_descent)
+ *		(http://en.wikipedia.org/wiki/Recursive_descent)
 
 program ::= program expr '\n' 
-        |
-expr    ::= NUMBER
-        | '(' expr ')'
-        | expr '+' expr
-        | expr '-' expr
-        | expr '*' expr
-        | expr '/' expr
-        | ' -' expr
+				|
+expr		::= NUMBER
+				| '(' expr ')'
+				| expr '+' expr
+				| expr '-' expr
+				| expr '*' expr
+				| expr '/' expr
+				| ' -' expr
 
 program ::= expr program '\n'
-        |
-expr    ::= term expr_p
-expr_p  ::= PLUS term expr_p
-        |   MINUS term expr_p
-        | 
-term    ::= factor term_p
-terp_p  ::= MULT factor term_p
-        |   DIV factor term_p
-        |
-factor  ::=  LPAREN expr RPAREN
-        | NUMBER
+				|
+expr		::= term expr_p
+expr_p	::= PLUS term expr_p
+				|	 MINUS term expr_p
+				| 
+term		::= factor term_p
+terp_p	::= MULT factor term_p
+				|	 DIV factor term_p
+				|
+factor	::=	LPAREN expr RPAREN
+				| NUMBER
  */
-
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-int yylex(void);
-void expression(void);
-extern char* yytext;
-extern int yylineno;
+#include "calc.h"
 
-typedef union YYSTYPE {
-        double double_val;
-} YYSTYPE;
+int symbol;
 
-YYSTYPE yylval;
-
-typedef enum {NUMBER, PLUS, MINUS, DIV, MULT, LPAREN, RPAREN, EOL} Symbol;
-
-Symbol symbol;
-
+double expression(void);
 
 void yyerror(char *s) {
-  fprintf(stderr, "%s %s at line %d\n", s, yytext, yylineno);
+	fprintf(stderr, "%s %s at line %d\n", s, yytext, yylineno);
 }
 
 void get_symbol() {
-  symbol = yylex();
+	symbol = yylex();
+	printf("symbol got: %u, %f\n", symbol, yylval.double_val);
 }
 
-int expect(Symbol s) {
-  if(accept(s)) {
-    return 1;
-  }
-  yyerror("unexpected symbol");
-  return 0;
+int expect(int s) {
+	if(accept(s)) {
+		return 1;
+	}
+	yyerror("unexpected symbol");
+	return 0;
 }
 
-int accept(Symbol s ) {
-  if(symbol==s) {
-    get_symbol();
-    return 1;
-  } else {
-    return 0;
-  }
+// returns true and advances if the current symbol matches parameter <s>
+int accept(int s) {
+	if(symbol==s) {
+		get_symbol();
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
-
-void factor(void) {
-  if(accept(NUMBER)) {
-    ;
-  } else if(accept(LPAREN)) {
-    expression();
-    expect(RPAREN);
-  } else {
-    error("syntax error");
-    get_symbol();
-  }
+double factor(void) {
+	if(accept(NUMBER)) {
+		printf("factor returns NUMBER = %f\n", yylval.double_val);
+		return yylval.double_val;
+	} else if(accept(LPAREN)) {
+		double expression_value = expression();
+		expect(RPAREN);
+		return expression_value;
+	} else {
+		yyerror("syntax error");
+		get_symbol();
+	}
 }
 
-void term(void) {
-  factor();
-  while( symbol == MULT || symbol == DIV ) {
-    get_symbol();
-    factor();
-  }
+double term(void) {
+	double term_result = factor();
+	while( symbol == MULT || symbol == DIV ) {
+		int s = symbol;
+		printf("in term loop for %c\n", s);
+		get_symbol();
+		if(s == MULT) {
+			printf("in term multiplier\n");
+			term_result = term_result * factor();
+		} else if(s == DIV) {
+			term_result = term_result / factor();
+		}
+	}
+	printf("term returns %f\n", term_result);
+	return term_result;
 }
 
-void expression(void) {
-  if( symbol == PLUS || symbol == MINUS ) {
-    get_symbol();
-  } 
-  term();
-  while( symbol == PLUS || symbol == MINUS ) {
-    get_symbol();
-    term();
-  }
+double expression(void) {
+	if( symbol == PLUS || symbol == MINUS ) {
+		get_symbol();
+	}
+	double expression_result = term();
+	while( symbol == PLUS || symbol == MINUS ) {
+		int s = symbol;
+		get_symbol();
+		if(s==PLUS) {
+			expression_result = expression_result + term();
+		} else if(s==PLUS) {
+			expression_result = expression_result - term();
+		}
+	}
+	return expression_result;
 }
 
+double program(void) {
+	get_symbol();
+	double program_result = expression();
+	//expect(EOL);
+	return program_result;
+}
 
-
-void program(void) {
-  get_symbol();
-  expression();
-  expect(EOL);
+int main() {
+	while(1) {
+		printf("%f\n", program());
+	}
 }

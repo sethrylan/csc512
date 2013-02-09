@@ -5,9 +5,8 @@ PROJDIRS := .
 
 all: calc
 
-calc: calc.l calc.c
-	@flex -o calc.yy.c calc.l
-	@gcc calc.yy.c calc.c -o calc -lfl
+calc: scan.c calc.c calc.h
+	@gcc scan.c calc.c -o calc -lfl
 
 clean:
 	@$(RM) -f calc calc2 pseudo
