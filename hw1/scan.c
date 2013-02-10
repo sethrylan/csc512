@@ -46,7 +46,7 @@ int yylex(void) {
 
 	while(c = getc(yyin)){
 		char s[] = "\0";
-		
+
 		s1:
 		if(isdigit(c)) {
 			strcat(s, to_str(c));
@@ -63,7 +63,6 @@ int yylex(void) {
 		s2: c = getc(yyin);
 		if(isdigit(c)) {
 			strcat(s, to_str(c));
-			c = getc(yyin);
 			goto s4;
 		} else {
 			yylval.double_val = atof(s);
