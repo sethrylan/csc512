@@ -9,11 +9,23 @@ all: calc
 
 test: testcalc
 
+pseudo: pseudo.tab.c lex.yy.c
+	gcc -o pseudo pseudo.tab.c
+
+pseudo.tab.c: pseudo.y lex.yy.c
+	bison pseudo.y
+
+lex.yy.c: pseudo.l pseudo.tab.h
+	flex pseudo.l
+
+pseudo.tab.h: pseudo.y
+	bison -d pseudo.y
+
 calc: scan.c calc.c calc.h
 	@gcc scan.c calc.c -o calc -lfl
 
 clean:
-	@$(RM) -f calc calc2 pseudo
+	@$(RM) -f calc pseudo
 	@$(RM) -f *.yy.c 
 	@$(RM) -f *.tab.* 
 	@$(RM) -f *.output
@@ -35,6 +47,19 @@ testcalc: all calctestfiles
 
 
 calctestfiles: $(CALCTESTFILES)
+
+
+install:
+	csh -c "cp ~mueller/classes/codeopt/ub2/pseudo0.y pseudo.y"
+	csh -c "cp ~mueller/classes/codeopt/ub2/pseudo0.l pseudo.l"
+	csh -c "cp ~mueller/classes/codeopt/ub2/hello.java ."
+	csh -c "cp ~mueller/classes/codeopt/ub2/test.psd ."
+	csh -c "ln -s ~mueller/classes/codeopt/jasmin ~/jasmin"
+	csh -c "ln -s ~/jasmin/bin/jasmin ."
+	csh -c "ln -s ~mueller/classes/codeopt/D-java/D-Java ."
+	csh -c "ln -s ~mueller/classes/codeopt/ub2/Keyboard.* ."
+
+
 
 #test: all testfiles
 #	-@rc=0; count=0; \

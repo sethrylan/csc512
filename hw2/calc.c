@@ -29,19 +29,20 @@ FACTOR-> number
 
 Grammar without left recursion and after left-factoring
 
-PROGRAM ->	 EXPR PROGRAM newline
-	|.
-EXPR ->	 TERM EXPR_P .
-EXPR_P ->	 plus EXPR
-	|	minus EXPR
-	|.
-TERM ->	 FACTOR TERM_P .
-TERM_P ->	 mult TERM
-	|	div TERM
-	|.
-FACTOR ->	 number
-	|	( EXPR )
-	|	minus EXPR .
+PROGRAM -> EXPR newline .
+EXPR	-> TERM EXPR_TAIL.
+EXPR_TAIL -> plus TERM EXPR_TAIL
+	| minus TERM EXPR_TAIL
+	| .
+TERM -> FACTOR_P TERM_TAIL .
+TERM_TAIL-> mult FACTOR_P TERM_TAIL 
+	| div FACTOR_P TERM_TAIL 
+	| .
+FACTOR_P  -> minus FACTOR
+	| FACTOR.
+FACTOR -> number
+	| (  EXPR ).
+
 
  */
 
@@ -106,7 +107,7 @@ double factor(void) {
 double term(void) {
 	double left = factor();
 
-	// start term' right-recursion
+	// start factor' right-recursion
 	while(symbol==MULT || symbol==DIV) {
 		if(symbol==MULT) {
 			match(MULT);
@@ -125,7 +126,7 @@ double term(void) {
 double expression(void) {
 	double left = term();
 
-	// start expr' right-recursion
+	// start term' right-recursion
 	while( symbol == PLUS || symbol == MINUS ) {
 		if(symbol==PLUS) {
 			match(PLUS);
