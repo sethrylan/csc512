@@ -63,15 +63,15 @@ void get_symbol() {
 }
 
 int expect(int s) {
-	if(accept(s)) {
+	if(match(s)) {
 		return 1;
 	}
-	yyerror("unexpected symbol");
+	yyerror("Unexpected Symbol");
 	return 0;
 }
 
 // returns true and advances if the current symbol matches parameter <s>
-int accept(int s) {
+int match(int s) {
 	if(symbol==s) {
 		get_symbol();
 		return 1;
@@ -81,16 +81,17 @@ int accept(int s) {
 }
 
 double factor(void) {
-//	printf("start factor: %u, %f\n", symbol, yylval.double_val);
-	if(symbol==MINUS) {
-//		printf("minus here\n");
-		return -1 * expression();
-	} else if(accept(NUMBER)) {
-		return yylval.double_val;
-	} else if(accept(LPAREN)) {
-		double expression_value = expression();
+	if(symbol==LPAREN) {
+		match(LPAREN);
+		double left = expression();
 		expect(RPAREN);
-		return expression_value;
+		return left;
+	} else if(symbol==NUMBER) {
+		match(NUMBER);
+		return yylval.double_val;
+	} else if(symbol==MINUS) {
+		match(MINUS);
+		return -1*factor();
 	} else {
 		yyerror("syntax error");
 		get_symbol();
@@ -99,12 +100,12 @@ double factor(void) {
 
 double term(void) {
 	double left = factor();
-	while( symbol == MULT || symbol == DIV ) {
-		int s = symbol;
-		get_symbol();
-		if(s == MULT) {
+	while(symbol==MULT || symbol==DIV) {
+		if(symbol==MULT) {
+			match(MULT);
 			left = left * factor();
-		} else if(s == DIV) {
+		} else if(symbol==DIV) {
+			match(DIV);
 			left = left / factor();
 		}
 	}
@@ -115,16 +116,13 @@ double term(void) {
 }
 
 double expression(void) {
-	if( symbol == PLUS || symbol == MINUS ) {
-		get_symbol();
-	}
 	double left = term();
 	while( symbol == PLUS || symbol == MINUS ) {
-		int s = symbol;
-		get_symbol();
-		if(s==PLUS) {
+		if(symbol==PLUS) {
+			match(PLUS);
 			left = left + term();
-		} else if(s==MINUS) {
+		} else if(symbol==MINUS) {
+			match(MINUS);
 			left = left - term();
 		}
 	}
