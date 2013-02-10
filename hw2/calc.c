@@ -45,7 +45,7 @@ factor	::= NUMBER
 #include <string.h>
 #include "calc.h"
 
-#define TEST
+//#define TEST
 
 int symbol;
 
@@ -81,9 +81,9 @@ int accept(int s) {
 }
 
 double factor(void) {
-	printf("start factor: %u, %f\n", symbol, yylval.double_val);
+//	printf("start factor: %u, %f\n", symbol, yylval.double_val);
 	if(symbol==MINUS) {
-		printf("minus here\n");
+//		printf("minus here\n");
 		return -1 * expression();
 	} else if(accept(NUMBER)) {
 		return yylval.double_val;
