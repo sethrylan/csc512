@@ -91,44 +91,47 @@ double factor(void) {
 }
 
 double term(void) {
-	double term_result = factor();
+	double left = factor();
 	while( symbol == MULT || symbol == DIV ) {
 		int s = symbol;
 		get_symbol();
 		if(s == MULT) {
-			term_result = term_result * factor();
+			left = left * factor();
 		} else if(s == DIV) {
-			term_result = term_result / factor();
+			left = left / factor();
 		}
 	}
 	#ifdef TEST
-	printf("term returns %f\n", term_result);
+	printf("term returns %f\n", left);
 	#endif
-	return term_result;
+	return left;
 }
 
 double expression(void) {
 	if( symbol == PLUS || symbol == MINUS ) {
 		get_symbol();
 	}
-	double expression_result = term();
+	double left = term();
 	while( symbol == PLUS || symbol == MINUS ) {
 		int s = symbol;
 		get_symbol();
 		if(s==PLUS) {
-			expression_result = expression_result + term();
-		} else if(s==PLUS) {
-			expression_result = expression_result - term();
+			left = left + term();
+		} else if(s==MINUS) {
+			left = left - term();
 		}
 	}
-	return expression_result;
+	return left;
 }
 
 double program(void) {
 	get_symbol();
-	double program_result = expression();
+	if(symbol==EOF) {
+		exit(0);
+	} else {
+		return expression();
+	}
 	//expect(EOL);
-	return program_result;
 }
 
 int main() {
