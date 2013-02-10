@@ -18,8 +18,10 @@ char* yytext;
 int yylineno;
 YYSTYPE yylval;
 
+//%option noyywrap
+
 int is_op(int c) {
-	if(c == '-' || c == '+' || c == '*' || c == '/' || c == '\n') {
+	if(c == '-' || c == '+' || c == '*' || c == '/' || c == '\n' || '(' || ')') {
 		return 1;
 	} else {
 		return 0;
@@ -45,7 +47,7 @@ int yylex(void) {
 
 	while(c = getc(yyin)){
 		char s[] = "\0";
-		
+
 		s1:
 		if(isdigit(c)) {
 			strcat(s, to_str(c));
@@ -62,7 +64,6 @@ int yylex(void) {
 		s2: c = getc(yyin);
 		if(isdigit(c)) {
 			strcat(s, to_str(c));
-			c = getc(yyin);
 			goto s4;
 		} else {
 			yylval.double_val = atof(s);

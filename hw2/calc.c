@@ -42,6 +42,8 @@ factor	::=	LPAREN expr RPAREN
 #include <string.h>
 #include "calc.h"
 
+//#define TEST
+
 int symbol;
 
 double expression(void);
@@ -52,7 +54,9 @@ void yyerror(char *s) {
 
 void get_symbol() {
 	symbol = yylex();
+	#ifdef TEST
 	printf("symbol got: %u, %f\n", symbol, yylval.double_val);
+	#endif
 }
 
 int expect(int s) {
@@ -75,7 +79,6 @@ int accept(int s) {
 
 double factor(void) {
 	if(accept(NUMBER)) {
-		printf("factor returns NUMBER = %f\n", yylval.double_val);
 		return yylval.double_val;
 	} else if(accept(LPAREN)) {
 		double expression_value = expression();
@@ -91,16 +94,16 @@ double term(void) {
 	double term_result = factor();
 	while( symbol == MULT || symbol == DIV ) {
 		int s = symbol;
-		printf("in term loop for %c\n", s);
 		get_symbol();
 		if(s == MULT) {
-			printf("in term multiplier\n");
 			term_result = term_result * factor();
 		} else if(s == DIV) {
 			term_result = term_result / factor();
 		}
 	}
+	#ifdef TEST
 	printf("term returns %f\n", term_result);
+	#endif
 	return term_result;
 }
 
