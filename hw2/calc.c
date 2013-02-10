@@ -13,28 +13,31 @@
  *
  *		(http://en.wikipedia.org/wiki/Recursive_descent)
 
-program ::= program expr '\n' 
-				|
-expr		::= NUMBER
-				| '(' expr ')'
-				| expr '+' expr
-				| expr '-' expr
-				| expr '*' expr
-				| expr '/' expr
-				| ' -' expr
+Original Grammar:
+program	::= program expr '\n' 
+	|
+expr	::= NUMBER
+	| '(' expr ')'
+	| expr '+' expr
+	| expr '-' expr
+	| expr '*' expr
+	| expr '/' expr
+	| '-' expr
 
-program ::= expr program '\n'
-				|
-expr		::= term expr_p
-expr_p	::= PLUS term expr_p
-				|	 MINUS term expr_p
-				| 
-term		::= factor term_p
-terp_p	::= MULT factor term_p
-				|	 DIV factor term_p
-				|
-factor	::=	LPAREN expr RPAREN
-				| NUMBER
+
+Grammar without left recursion:
+program	::= expr program '\n'
+	|
+expr	::= term '+' expr
+	|   term '-' expr
+	|   term
+term	::= factor '*' term
+	|   factor '/' term
+	|   factor
+factor	::= NUMBER
+	| '(' expr ')'	
+	| '-' expr
+
  */
 
 #include <stdlib.h>
@@ -42,7 +45,7 @@ factor	::=	LPAREN expr RPAREN
 #include <string.h>
 #include "calc.h"
 
-//#define TEST
+#define TEST
 
 int symbol;
 
@@ -78,7 +81,11 @@ int accept(int s) {
 }
 
 double factor(void) {
-	if(accept(NUMBER)) {
+	printf("start factor: %u, %f\n", symbol, yylval.double_val);
+	if(symbol==MINUS) {
+		printf("minus here\n");
+		return -1 * expression();
+	} else if(accept(NUMBER)) {
 		return yylval.double_val;
 	} else if(accept(LPAREN)) {
 		double expression_value = expression();
