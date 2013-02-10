@@ -14,6 +14,17 @@
  *		(http://en.wikipedia.org/wiki/Recursive_descent)
 
 Original Grammar:
+PROGRAM -> PROGRAM EXPR newline
+        |.
+EXPR    -> number
+        | ( EXPR )
+        | EXPR plus EXPR
+        | EXPR minus EXPR
+        | EXPR mult EXPR
+        | EXPR div EXPR
+        | minus expr .
+
+Grammer without left recursion:
 PROGRAM-> EXPR PROGRAM newline
         | .
 EXPR-> TERM plus EXPR
@@ -27,7 +38,7 @@ FACTOR-> number
 	| minus EXPR .
 
 
-Grammar without left recursion and after left-factoring
+Grammar after left-factoring
 
 PROGRAM -> EXPR newline .
 EXPR	-> TERM EXPR_TAIL.
@@ -130,7 +141,7 @@ double factor() {
 	switch(symbol) {
 		case NUMBER:
 			factor_val = yylval.double_val;
-			get_symbol();
+			match(NUMBER);
 			return factor_val;
 			break;
 		case LPAREN: 
