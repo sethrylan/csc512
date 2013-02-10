@@ -14,29 +14,34 @@
  *		(http://en.wikipedia.org/wiki/Recursive_descent)
 
 Original Grammar:
-program	::= program expr '\n' 
-	|
-expr	::= NUMBER
-	| '(' expr ')'
-	| expr '+' expr
-	| expr '-' expr
-	| expr '*' expr
-	| expr '/' expr
-	| '-' expr
+PROGRAM-> EXPR PROGRAM newline
+        | .
+EXPR-> TERM plus EXPR
+	|   TERM minus  EXPR
+	|   TERM .
+TERM-> FACTOR mult TERM 
+	|   FACTOR div TERM 
+	|   FACTOR .
+FACTOR-> number
+	| ( EXPR )
+	| minus EXPR .
 
 
-Grammar without left recursion:
-program	::= expr program '\n'
-	|
-expr	::= term '+' expr
-	|   term '-' expr
-	|   term
-term	::= factor '*' term
-	|   factor '/' term
-	|   factor
-factor	::= NUMBER
-	| '(' expr ')'	
-	| '-' expr
+Grammar without left recursion and after left-factoring
+
+PROGRAM ->	 EXPR PROGRAM newline
+	|.
+EXPR ->	 TERM EXPR_P .
+EXPR_P ->	 plus EXPR
+	|	minus EXPR
+	|.
+TERM ->	 FACTOR TERM_P .
+TERM_P ->	 mult TERM
+	|	div TERM
+	|.
+FACTOR ->	 number
+	|	( EXPR )
+	|	minus EXPR .
 
  */
 
@@ -100,6 +105,8 @@ double factor(void) {
 
 double term(void) {
 	double left = factor();
+
+	// start term' right-recursion
 	while(symbol==MULT || symbol==DIV) {
 		if(symbol==MULT) {
 			match(MULT);
@@ -117,6 +124,8 @@ double term(void) {
 
 double expression(void) {
 	double left = term();
+
+	// start expr' right-recursion
 	while( symbol == PLUS || symbol == MINUS ) {
 		if(symbol==PLUS) {
 			match(PLUS);
