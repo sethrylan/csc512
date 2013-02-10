@@ -55,7 +55,9 @@ FACTOR -> number
 
 int symbol;
 
-double expression(void);
+double expr(void);
+double factor(void);
+double term(void);
 
 void yyerror(char *s) {
 	fprintf(stderr, "%s %s at line %d\n", s, yytext, yylineno);
@@ -86,6 +88,7 @@ int match(int s) {
 	}
 }
 
+/*
 double factor(void) {
 	if(symbol==LPAREN) {
 		match(LPAREN);
@@ -103,40 +106,105 @@ double factor(void) {
 		get_symbol();
 	}
 }
+*/
 
-double term(void) {
-	double left = factor();
-
-	// start factor' right-recursion
-	while(symbol==MULT || symbol==DIV) {
-		if(symbol==MULT) {
-			match(MULT);
-			left = left * factor();
-		} else if(symbol==DIV) {
-			match(DIV);
-			left = left / factor();
-		}
-	}
-	#ifdef TEST
-	printf("term returns %f\n", left);
-	#endif
-	return left;
+double factor_p() {
+	switch(symbol) {
+		case MINUS:
+			match(MINUS);
+			return -1*factor();
+			break;
+		case NUMBER:
+		case LPAREN: 
+			return factor(); 
+			break;
+		default:
+			yyerror("Unexpected symbol");
+			break;
+	  }
 }
 
-double expression(void) {
-	double left = term();
+double factor() {
+	double expr_val;
+	double factor_val;
+	switch(symbol) {
+		case NUMBER:
+			factor_val = yylval.double_val;
+			get_symbol();
+			return factor_val;
+			break;
+		case LPAREN: 
+			match(LPAREN); 
+			expr_val = expr(); 
+			match(RPAREN); 
+			return expr_val;
+			break;
+		default:
+			yyerror("Unexpected symbol");
+			break;
+	  }
+}
 
-	// start term' right-recursion
-	while( symbol == PLUS || symbol == MINUS ) {
-		if(symbol==PLUS) {
+
+double term_tail(double lhs_val) {
+	double right;
+	switch(symbol) {
+		case MULT: 
+			match(MULT);
+			right = factor(); 
+			return term_tail(lhs_val * right);
+			break;
+		case DIV:
+			match(DIV);
+			right = factor(); 
+			return term_tail(lhs_val / right);
+			break;
+		case RPAREN:
+		case EOL:
+		case PLUS: 
+			return lhs_val; 
+			break;
+		case MINUS: 
+			return lhs_val; 
+			break;
+		default: 
+			yyerror("Unexpected symbol"); 
+			break;    
+	  }
+}
+
+double term() { 
+	double left = factor_p(); 
+	return term_tail(left); 
+}
+
+
+double expr_tail(double lhs_val) {
+	double right;
+	switch(symbol) {
+		case PLUS: 
 			match(PLUS);
-			left = left + term();
-		} else if(symbol==MINUS) {
+			right = term(); 
+			return expr_tail(lhs_val + right);
+			break;
+		case MINUS:
 			match(MINUS);
-			left = left - term();
-		}
+			right = term(); 
+			return expr_tail(lhs_val - right);
+			break;
+		case RPAREN:
+		case EOL:
+			return lhs_val;
+			break;
+		default:
+			yyerror("Unexpected symbol");
+			break;
 	}
-	return left;
+}
+
+double expr(void) {
+	double left = term();
+	return expr_tail(left);
 }
 
 double program(void) {
@@ -144,9 +212,8 @@ double program(void) {
 	if(symbol==EOF) {
 		exit(0);
 	} else {
-		return expression();
+		return expr();
 	}
-	//expect(EOL);
 }
 
 int main() {
