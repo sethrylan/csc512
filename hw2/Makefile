@@ -59,6 +59,14 @@ install:
 	csh -c "ln -s ~mueller/classes/codeopt/D-java/D-Java ."
 	csh -c "ln -s ~mueller/classes/codeopt/ub2/Keyboard.* ."
 
+jasmin:
+	wget http://courses.ncsu.edu/csc512/lec/601/hw/hw2/Keyboard.java
+	wget http://courses.ncsu.edu/csc512/lec/601/hw/hw2/jasmin-2.4.zip
+	javac Keyboard.java
+	unzip jasmin-2.4.zip
+	dos2unix jasmin-2.4/build.sh > jasmin-2.4/build2.sh
+	sh jasmin-2.4/build2.sh all
+	ln -s jasmin-2.4/jasmin.jar .
 
 
 #test: all testfiles
