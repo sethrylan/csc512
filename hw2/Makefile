@@ -68,7 +68,11 @@ jasmin:
 	sh jasmin-2.4/build2.sh all
 	ln -s jasmin-2.4/jasmin.jar .
 
+rmjasmin:
+	@$(RM) -fr Keyboard.java jasmin-2.4.zip jasmin-2.4 jasmin.jar
+	@$(UNLINK) jasmin.jar
 
+	
 #test: all testfiles
 #	-@rc=0; count=0; \
 #	for input_file in $(TESTFILES); do \
