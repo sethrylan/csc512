@@ -10,14 +10,14 @@ all: calc pseudo
 
 test: testcalc
 
-pseudo: pseudo.tab.c lex.yy.c
+pseudo: pseudo.tab.c pseudo.yy.c
 	gcc -o pseudo pseudo.tab.c
 
-pseudo.tab.c: pseudo.y lex.yy.c
+pseudo.tab.c: pseudo.y pseudo.yy.c
 	bison pseudo.y
 
-lex.yy.c: pseudo.l pseudo.tab.h
-	flex pseudo.l
+pseudo.yy.c: pseudo.l pseudo.tab.h
+	flex -o pseudo.yy.c pseudo.l
 
 pseudo.tab.h: pseudo.y
 	bison -d pseudo.y
