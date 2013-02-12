@@ -46,9 +46,7 @@ testcalc: calc calctestfiles
 	done; \
 	echo; echo " Tests run: $$count,  Failures: $$rc"
 
-
 calctestfiles: $(CALCTESTFILES)
-
 
 install:
 	csh -c "cp ~mueller/classes/codeopt/ub2/pseudo0.y pseudo.y"
@@ -73,6 +71,8 @@ rmjasmin:
 	@$(RM) Keyboard.class
 	@unlink jasmin.jar
 
+rmbakfiles:
+	@$(RM) -f ./*~
 	
 #test: all testfiles
 #	-@rc=0; count=0; \

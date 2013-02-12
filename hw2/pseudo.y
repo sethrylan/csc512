@@ -1,6 +1,8 @@
 
 %{
 	#include <stdio.h>
+	#include <stdlib.h>
+	#include <string.h>
 
 	extern FILE *yyin;
 	extern FILE *yyout;
@@ -14,6 +16,8 @@
 	int label = 0;
 	int maxstacksize = 0;
 	int stacksize = 0;
+
+	int maxsym = 0;
 
 	char s[1024], t[1024];
 	char l1[1024], go_l1[1024];
@@ -38,10 +42,6 @@
 		struct Scope* parent;
 	} *Scope;
 
-
-
-
-
 	struct var_info {
 		int offset;
 		var_type type;
@@ -49,13 +49,21 @@
 
 	typedef struct var_info var_info;
 
+	void beginScope();
+	void endScope();
+
+	/* returns stack location for variable s*/
+	int addSymbol(char *s, var_type type);
+
+	/*return metadata for symbol s like location, type and so on*/
+	struct var_info getsym(char *s);
+
 	/*
 	typedef struct struct var_info {
 		int offset;
 		var_type type;
 	} *var_info;
 	*/
-
 
 	/*
 	 * stack - change stack size
@@ -82,7 +90,7 @@
 		if (!s2) {
 			return s1;
 		}
-		s = (char *) calloc(sizeof(char), strlen(s1) + strlen(s2) + 1);
+		s = (char *)calloc(sizeof(char), strlen(s1) + strlen(s2) + 1);
 		strcat(s, s1);
 		strcat(s, s2);
 		free(s1);
@@ -134,13 +142,6 @@
 		return strdup(t);
 	}
 
-	void beginScope();
-	void endScope();
-
-	/* returns stack location for variable s*/
-	int addSymbol(char *s, var_type type);
-	/*rteurn metadata for symbol s like location, type and so on*/
-	struct var_info getsym(char *s);
 %}
 
 
@@ -154,27 +155,53 @@
 	char *str_ptr;
 	int int_val;
 	double double_val;
+	var_type var_type_val;
 	/*Feel free to add any other data types*/
 }
 
-%token BEGIN_K END END_OF_FILE
+
+%token ASSIGN VAR BEGIN_K END
+%token PLUS MINUS MULT DIV DIVIDE MOD
+%token AND OR NOT
+%token IF THEN ELSE ENDIF
+%token REPEAT UNTIL ENDREPEAT
+%token FOR TO ENDFOR PARFOR ENDPARFOR
+%token PRIVATE REDUCE
+%token PROC ENDPROC PARPROC ENDPARPROC
+%token EQ NEQ LT LTE GT GTE
 %token DO WHILE ENDWHILE
+%token MIN MAX
 %token INT REAL
 %token LPAREN RPAREN
+%token LBRACE RBRACE
+%token READ WRITE
+%token IN OUT INOUT REF
+%token END_OF_FILE 
+
+// type information for terminal tokens: identifiers and numbers
 %token<str_ptr> ID 
-%token READ
+%token<double_val> NUMBER
 
-%token compExp
-%token declarations
-%token statements
+// associativity and precedence of operators
+%right ASSIGN
+%left AND
+%left OR
+%left NOT
+%left GTE LTE EQ NEQ GT LT
+%left MINUS PLUS 
+%left MULT DIVIDE
+%left DIV MOD
+%nonassoc USIGN
+%nonassoc IF
+%nonassoc ELSE
 
-%type<int_val> compExp
-%type<int_val> block
+%type<str_ptr> comparisonExpr
+//%type<int_val> block
 
-%type<int_val> program
+%type<str_ptr> program
 %type<str_ptr> input
-%type<var_type> basicType
-%type<str_ptr> statements
+%type<var_type_val> basicType
+%type<str_ptr> statementGroup
 %type<str_ptr> whileLoop
 
 %%
@@ -191,59 +218,178 @@ program : block END_OF_FILE {
 	}
 	;
 
+
 // added
 variable:		ID				{}
 			;
-block:			declarations BEGIN_K statements END
-			| BEGIN_K statements END
+block:			declarations BEGIN_K statementGroup END
+			| BEGIN_K statementGroup END
+			;
+statementGroup:		statementGroup statement
+			| 				{}
+			;
+declarations:		VAR varListGroup
+			;
+varListGroup:		varListGroup varList ':' type ';'
+			|
+			;
+varList: 		variable variableGroup
+			;
+variableGroup:		variableGroup ',' variable
+			| 
+			;
+type:			basicType 
+			| arrayType
 			;
 
+basicType:		INT {
+				$$ = L;
+			} 
+			| REAL {
+				$$ = D;
+			}
+			;
 
-basicType : INT {
-		$$ = L;
-	} 
-	| REAL {
-		$$ = D;
-	}
-	;
+//added
+arrayType:		basicType LBRACE expression RBRACE
+			;
+statement:		assignment ';' 
+			| block ';' 
+			| test ';' 
+			| loop ';' 
+			| input ';' 
+			| output ';' 
+			| procedure ';' 
+			| procCall ';'
+			| error ';'
+			;
+assignment:		variable ASSIGN expression
+			| variable LBRACE expression RBRACE ASSIGN expression
+			;
+expression:		variable
+			| variable LBRACE expression RBRACE 
+			| NUMBER
+			| expression DIV expression
+			| expression MOD expression
+			| expression DIVIDE expression
+			| expression MULT expression
+			| expression PLUS expression	{/*printf("expr+expr rule triggered at %d.\n", yylineno);*/}
+			| expression MINUS expression	{/*printf("expr-expr rule triggered at %d.\n", yylineno);*/}
+			| INT LPAREN expression RPAREN
+			| PLUS expression %prec USIGN
+			| MINUS expression %prec USIGN	{/*printf("uminus rule triggered at %d.\n", yylineno);*/}
+			;
+comparisonOp:		EQ				{}
+			| NEQ				{}
+			| LT				{}
+			| GT				{}
+			| LTE				{}
+			| GTE				{}
+			;
+comparisonExpr:		expression comparisonOp expression	{return 1; /* TODO */}
+			| comparisonExpr AND comparisonExpr
+			| comparisonExpr OR comparisonExpr
+			| NOT comparisonExpr			{return 0; /* TODO */}
+			;
+test:			IF comparisonExpr THEN statementGroup ENDIF
+			| IF comparisonExpr THEN statementGroup ELSE statementGroup ENDIF
+			;
+loop:			whileLoop
+			| repeatLoop
+			| forLoop
+			| parforLoop
+			;
 
-input : READ LPAREN ID RPAREN {
-		struct var_info readId = getsym($3);
-		stack(+2);
-		if(readId.type == D) { 	
-			$$ = concat(
-			strdup("  invokestatic Keyboard/readDouble()D\n"),
-			strdup(store($3)));
-		} else if(readId.type == L) {
-			$$ = concat(
-			strdup("  invokestatic Keyboard/readInt()I\n  i2l\n"),
-			strdup(store($3)));
-		} else {
-			yyerror("cannot read arrays\n");exit(1);
-		}
-		stack(-2);
-	}
-	;
+whileLoop:		WHILE comparisonExpr DO statementGroup ENDWHILE {
+				sprintf(go_l1, "  ifne Label%d\n", label);
+				sprintf(l1, "Label%d:\n", label++);
+				sprintf(goto_l2, "  goto Label%d\n", label);
+				sprintf(l2, "Label%d:\n", label++);
+				$$ = concat(
+				       concat(
+					 concat(
+					   concat(
+					     concat(
+					       strdup(goto_l2),
+						 strdup(l1)),
+					       $4),
+					     strdup(l2)),
+					   $2),
+				  strdup(go_l1));
+				stack(-1);
+			}
+			;
 
-whileLoop : WHILE compExp DO statements ENDWHILE {
-		sprintf(go_l1, "  ifne Label%d\n", label);
-		sprintf(l1, "Label%d:\n", label++);
-		sprintf(goto_l2, "  goto Label%d\n", label);
-		sprintf(l2, "Label%d:\n", label++);
-		$$ = concat(
-		       concat(
-		         concat(
-		           concat(
-		             concat(
-		               strdup(goto_l2),
-		                 strdup(l1)),
-		               $4),
-		             strdup(l2)),
-		           $2),
-		  strdup(go_l1));
-		stack(-1);
-	}
-	;
+repeatLoop:		REPEAT statementGroup UNTIL comparisonExpr ENDREPEAT
+			;
+forLoop:		FOR variable ASSIGN expression TO expression DO statementGroup ENDFOR
+			;
+
+parforLoop:		PARFOR variable ASSIGN expression TO expression parMod DO statementGroup ENDPARFOR
+			;
+
+parMod:			reduceGroup
+			| PRIVATE varList reduceGroup
+			;
+reduceGroup:		reduceGroup REDUCE reduceOp varList
+			|
+			;
+reduceOp:		MINUS				{/*printf("-reduceop rule triggered at %d.\n", yylineno);*/}
+			|PLUS				{}
+			| MIN				{}
+			| MAX				{}
+			;
+
+input:			READ LPAREN ID RPAREN {
+				struct var_info readId = getsym($3);
+				stack(+2);
+				if(readId.type == D) { 	
+					$$ = concat(
+					strdup("  invokestatic Keyboard/readDouble()D\n"),
+					strdup(store($3)));
+				} else if(readId.type == L) {
+					$$ = concat(
+					strdup("  invokestatic Keyboard/readInt()I\n  i2l\n"),
+					strdup(store($3)));
+				} else {
+					yyerror("cannot read arrays\n");exit(1);
+				}
+				stack(-2);
+			}
+			;
+
+//added; should output have an expression?
+output:			WRITE LPAREN expression RPAREN
+			;
+procedure:		PROC procName LPAREN parametersOption RPAREN block ENDPROC
+			| PARPROC procName LPAREN parametersOption RPAREN block ENDPARPROC
+			;
+procName:		ID				{}
+			;
+parameters:		parameter parameterGroup
+			;
+parametersOption:	parameters
+			|
+			;
+parameterGroup:		parameterGroup ',' parameter
+			| 
+			;
+parameter:		passBy variable ':' type
+			;
+passBy:			IN
+			| OUT
+			| INOUT
+			| REF
+			;
+procCall:		variable LPAREN arguments RPAREN
+			;
+arguments:		expression expressionGroup
+			|					/* added epsilon alternative not in EBNF spec */
+			;
+expressionGroup:	expressionGroup ',' expression
+			| 
+			;
+
 %%
 
 /***********************************************
