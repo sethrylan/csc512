@@ -4,6 +4,7 @@ PROJDIRS := .
 #TESTFILES := $(shell find $(TESTDIR) -type f -name "*.input")
 CALCTESTDIR := ./calc_test
 CALCTESTFILES := $(shell find $(CALCTESTDIR) -type f -name "*.input")
+JASMIN_DIR := ./jasmin_files
 
 all: calc
 
@@ -60,16 +61,16 @@ install:
 	csh -c "ln -s ~mueller/classes/codeopt/ub2/Keyboard.* ."
 
 jasmin:
-	wget http://courses.ncsu.edu/csc512/lec/601/hw/hw2/Keyboard.java
-	wget http://courses.ncsu.edu/csc512/lec/601/hw/hw2/jasmin-2.4.zip
-	javac Keyboard.java
-	unzip jasmin-2.4.zip
-	dos2unix jasmin-2.4/build.sh > jasmin-2.4/build2.sh
-	sh jasmin-2.4/build2.sh all
-	ln -s jasmin-2.4/jasmin.jar .
+	javac $(JASMIN_DIR)/Keyboard.java 
+	mv $(JASMIN_DIR)/Keyboard.class .
+	unzip $(JASMIN_DIR)/jasmin-2.4.zip -d $(JASMIN_DIR)
+	dos2unix $(JASMIN_DIR)/jasmin-2.4/build.sh > $(JASMIN_DIR)/jasmin-2.4/build2.sh
+	sh $(JASMIN_DIR)/jasmin-2.4/build2.sh all
+	ln -s $(JASMIN_DIR)/jasmin-2.4/jasmin.jar .
 
 rmjasmin:
-	@$(RM) -fr Keyboard.java jasmin-2.4.zip jasmin-2.4 jasmin.jar
+	@$(RM) -fr $(JASMIN_DIR)/jasmin-2.4 $(JASMIN_DIR)/jasmin.jar
+	@$(RM) Keyboard.class
 	@unlink jasmin.jar
 
 	
