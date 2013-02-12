@@ -32,7 +32,7 @@ clean:
 	@$(RM) -f *.output
 	@$(RM) -f $(CALCTESTDIR)/*.output 
 
-testcalc: all calctestfiles
+testcalc: calc calctestfiles
 	-@rc=0; count=0; \
 	echo "======Testing calc======"; \
 	for input_file in $(CALCTESTFILES); do \
