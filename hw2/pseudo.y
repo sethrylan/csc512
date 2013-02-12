@@ -4,16 +4,14 @@
 
 	extern FILE *yyin;
 	extern FILE *yyout;
-	
-	extern int yylineno;
 
+	extern int yylineno;
 	extern char *yytext;
 
 	int yylex(void);
 	int iVerbose = 1;
 
 	int label = 0;
-
 	int maxstacksize = 0;
 	int stacksize = 0;
 
@@ -21,12 +19,12 @@
 	char l1[1024], go_l1[1024];
 	char l2[1024], goto_l2[1024];
 
-	typedef enum  {/*long*/L = 0, /*double*/D = 1, /*long array*/AL = 2, /*double array*/AD = 3} var_type;
-
-	typedef struct Scope{
-		syment sym_table;
-		struct Scope* parent;
-	}*Scope;
+	typedef enum  {
+		L = 0,  /*long*/
+		D = 1,  /*double*/
+		AL = 2, /*long array*/
+		AD = 3  /*double array*/
+	} var_type;
 
 	typedef struct syment_s {
 		char *s;
@@ -35,12 +33,29 @@
 		struct syment_s *next;
 	} *syment;
 
-	struct var_info{
+	typedef struct Scope{
+		syment sym_table;
+		struct Scope* parent;
+	} *Scope;
+
+
+
+
+
+	struct var_info {
 		int offset;
 		var_type type;
 	};
 
 	typedef struct var_info var_info;
+
+	/*
+	typedef struct struct var_info {
+		int offset;
+		var_type type;
+	} *var_info;
+	*/
+
 
 	/*
 	 * stack - change stack size
@@ -54,7 +69,6 @@
 			maxstacksize = stacksize;
 		}
 	}
-
 
 	/*
 	 * concat - concatenate s1+s2 and return result
@@ -130,7 +144,9 @@
 %}
 
 
-/* defintions: token, precedence, types etc. */
+/***********************************************
+ * defintions: token, precedence, types etc.   *
+ ***********************************************/
 
 //%start program
 
@@ -141,29 +157,46 @@
 	/*Feel free to add any other data types*/
 }
 
+%token BEGIN_K END END_OF_FILE
 %token DO WHILE ENDWHILE
 %token INT REAL
 %token LPAREN RPAREN
-%token ID 
+%token<str_ptr> ID 
 %token READ
 
-%token stmts
-%token<int_val> compExp
-%token<int_val> block
-//%type compExp
-//%type stmts
+%token compExp
+%token declarations
+%token statements
+
+%type<int_val> compExp
+%type<int_val> block
+
+%type<int_val> program
+%type<str_ptr> input
+%type<var_type> basicType
+%type<str_ptr> statements
+%type<str_ptr> whileLoop
 
 %%
 
-/* Grammar Production Rules */
-/* partial grammar: this file won't compile properly. Only given for headstart.*/
+/***********************************************
+ * Grammar Production Rules                    *
+ ***********************************************/
 
-program : block {
+program : block END_OF_FILE {
 		fprintf(yyout, "  .limit stack %d ; so many items can be pushed\n", maxstacksize);
 		fprintf(yyout, "  .limit locals %d ; so many variables exist (doubles need 2 items)\n", maxsym + 1);
 		fprintf(yyout, "%s", $$);
+		//exit(0);
 	}
 	;
+
+// added
+variable:		ID				{}
+			;
+block:			declarations BEGIN_K statements END
+			| BEGIN_K statements END
+			;
 
 
 basicType : INT {
@@ -192,29 +225,30 @@ input : READ LPAREN ID RPAREN {
 	}
 	;
 
-whileLoop : WHILE compExp DO stmts ENDWHILE {
+whileLoop : WHILE compExp DO statements ENDWHILE {
 		sprintf(go_l1, "  ifne Label%d\n", label);
 		sprintf(l1, "Label%d:\n", label++);
 		sprintf(goto_l2, "  goto Label%d\n", label);
 		sprintf(l2, "Label%d:\n", label++);
 		$$ = concat(
-		  concat(
-		    concat(
-		      concat(
-		        concat(
-		          strdup(goto_l2),
-		            strdup(l1)),
-		              $4),
-		        strdup(l2)),
-		      $2),
+		       concat(
+		         concat(
+		           concat(
+		             concat(
+		               strdup(goto_l2),
+		                 strdup(l1)),
+		               $4),
+		             strdup(l2)),
+		           $2),
 		  strdup(go_l1));
 		stack(-1);
 	}
 	;
 %%
 
-
-/* subroutines */
+/***********************************************
+ * subroutines                                 *
+ ***********************************************/
 
 /*
 * use - how to use program (exit)
@@ -223,7 +257,6 @@ void use() {
 	fprintf(stderr, "use: pseudo [fn.psd]\n");
 	exit(0);
 }
-
 
 int main(int argc, char *argv[]) {
 	int result;
