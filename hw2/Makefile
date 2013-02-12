@@ -8,7 +8,7 @@ JASMIN_DIR := ./jasmin_files
 
 all: calc pseudo
 
-test: testcalc
+test: testcalc testpseudoparse
 
 pseudo: pseudo.tab.c pseudo.yy.c
 	@gcc -o pseudo pseudo.tab.c
@@ -45,7 +45,7 @@ testcalc: calc calctestfiles
 		diff $$expected_file $$output_file > /dev/null || (echo -ne "\r  ....FAILED. See $$testname.output for failures." >&2 && false); \
 		rc=`expr $$rc + $$?`; count=`expr $$count + 1`; \
 	done; \
-	echo; echo " Tests run: $$count,  Failures: $$rc"
+	echo; echo " Tests run: $$count,  Failures: $$rc\n\n"
 
 calctestfiles: $(CALCTESTFILES)
 
@@ -77,6 +77,7 @@ rmbakfiles:
 	
 testpseudoparse: all pseudoparsetestfiles
 	-@rc=0; count=0; \
+        echo "======Testing pseudo parse syntax======"; \
 	for input_file in $(PSEUDOPARSETESTFILES); do \
 		testname=`basename $$input_file .input`; \
 		output_file=$(PSEUDOPARSETESTDIR)/$$testname.output; \
@@ -86,6 +87,6 @@ testpseudoparse: all pseudoparsetestfiles
 		diff $$expected_file $$output_file > /dev/null || (echo -ne "\r  ....FAILED. See $$testname.output for failures." >&2 && false);  \
 		rc=`expr $$rc + $$?`; count=`expr $$count + 1`;\
 	done; \
-	echo; echo " Tests run: $$count,  Failures: $$rc"
+	echo; echo " Tests run: $$count,  Failures: $$rc\n\n"
 
 pseudoparsetestfiles: $(PSEUDOPARSETESTFILES)

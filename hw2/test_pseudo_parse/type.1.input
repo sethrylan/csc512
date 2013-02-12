@@ -3,11 +3,11 @@ BEGIN
 	fake[10] := INT(0);
 	z := -INT(0);
 	z := -INT(0) - -10.0;
-	cast_int := INT(12.);
-	cast_int := INT(-12.);
+	cast_int := INT(12.0);
+	cast_int := INT(-12.0);
 	cast_int := INT(12.12);
 	cast_int := INT(-12.12);
-	cast_int := INT(.12);
-	cast_int := INT(-.12);
+	cast_int := INT(0.12);
+	cast_int := INT(-0.12);
 END
 
