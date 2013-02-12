@@ -188,7 +188,7 @@
 %type<str_ptr> input
 %type<var_type_val> basicType
 %type<str_ptr> statementGroup
-//%type<str_ptr> whileLoop
+%type<str_ptr> whileLoop
 
 
 // associativity and precedence of operators
@@ -251,7 +251,6 @@ statement:		assignment SEMICOLON
 			| input SEMICOLON 
 			| output SEMICOLON 
 			| procedure SEMICOLON 
-			| procCall SEMICOLON
 			| error SEMICOLON
 			;
 assignment:		variable ASSIGN expression
@@ -267,6 +266,7 @@ expression:		variable
 			| expression MULT expression
 			| expression PLUS expression	{/*printf("expr+expr rule triggered at %d.\n", yylineno);*/}
 			| expression MINUS expression	{/*printf("expr-expr rule triggered at %d.\n", yylineno);*/}
+			| LPAREN expression RPAREN
 			| INT LPAREN expression RPAREN
 			| PLUS expression %prec USIGN
 			| MINUS expression %prec USIGN	{/*printf("uminus rule triggered at %d.\n", yylineno);*/}
@@ -286,12 +286,10 @@ comparisonExpr:		expression comparisonOp expression	{return 1; /* TODO */}
 test:			IF comparisonExpr THEN statementGroup ENDIF
 			| IF comparisonExpr THEN statementGroup ELSE statementGroup ENDIF
 			;
-loop:			WHILE comparisonExpr DO statementGroup ENDWHILE
-			| REPEAT statementGroup UNTIL comparisonExpr ENDREPEAT
-			| FOR variable ASSIGN expression TO expression DO statementGroup ENDFOR
-			| PARFOR variable ASSIGN expression TO expression parMod DO statementGroup ENDPARFOR
+loop:			whileLoop
+			| repeatLoop
+			| forLoop
 			;
-/*
 whileLoop:		WHILE comparisonExpr DO statementGroup ENDWHILE {
 				sprintf(go_l1, "  ifne Label%d\n", label);
 				sprintf(l1, "Label%d:\n", label++);
@@ -311,18 +309,26 @@ whileLoop:		WHILE comparisonExpr DO statementGroup ENDWHILE {
 				stack(-1);
 			}
 			;
-*/
+repeatLoop:		REPEAT statementGroup UNTIL comparisonExpr ENDREPEAT
+			;
+forLoop:		FOR variable ASSIGN expression TO expression DO statementGroup ENDFOR
+			;
+/*
+parforLoop:		PARFOR variable ASSIGN expression TO expression parMod DO statementGroup ENDPARFOR
+			;
+
 parMod:			reduceGroup
 			| PRIVATE varList reduceGroup
 			;
 reduceGroup:		reduceGroup REDUCE reduceOp varList
 			|
 			;
-reduceOp:		MINUS				{/*printf("-reduceop rule triggered at %d.\n", yylineno);*/}
+reduceOp:		MINUS				{}
 			|PLUS				{}
 			| MIN				{}
 			| MAX				{}
 			;
+*/
 input:			READ LPAREN IDENTIFIER RPAREN {
 				struct var_info readId = getsym($3);
 				stack(+2);
@@ -365,14 +371,17 @@ passBy:			IN
 			| INOUT
 			| REF
 			;
+/*
 procCall:		variable LPAREN arguments RPAREN
 			;
 arguments:		expression expressionGroup
-			|					/* added epsilon alternative not in EBNF spec */
+			|
 			;
+
 expressionGroup:	expressionGroup COMMA expression
 			| 
 			;
+*/
 
 %%
 

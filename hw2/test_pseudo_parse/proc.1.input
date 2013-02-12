@@ -1,8 +1,0 @@
-BEGIN
-PROC procName() BEGIN END ENDPROC;
-PROC betterProc(IN in:INT, OUT out:INT, INOUT inout:INT, REF r:REAL) BEGIN END ENDPROC;
-procName(no, arguments, here);
-betterProc(really, arguments);
-END
-
-

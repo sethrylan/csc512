@@ -1,4 +1,0 @@
-VAR a:INT;
-BEGIN
-	PARFOR ii:=iii TO 5*5+2 DO ENDPARFOR;
-END
