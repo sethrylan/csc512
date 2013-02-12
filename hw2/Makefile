@@ -6,7 +6,7 @@ CALCTESTDIR := ./calc_test
 CALCTESTFILES := $(shell find $(CALCTESTDIR) -type f -name "*.input")
 JASMIN_DIR := ./jasmin_files
 
-all: calc
+all: calc pseudo
 
 test: testcalc
 
