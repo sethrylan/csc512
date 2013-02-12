@@ -55,8 +55,13 @@
 	/* returns stack location for variable s*/
 	int addSymbol(char *s, var_type type);
 
-	/*return metadata for symbol s like location, type and so on*/
-	struct var_info getsym(char *s);
+	/*
+	 * return metadata for symbol s like location, type and so on
+	 */
+	struct var_info getsym(char *s) {
+		
+
+	}
 
 	/*
 	typedef struct struct var_info {
@@ -161,14 +166,14 @@
 
 
 %token ASSIGN VAR BEGIN_K END
-%token PLUS MINUS MULT DIV DIVIDE MOD
+%token PLUS MINUS TIMES DIV DIVIDE MOD
 %token AND OR NOT
 %token IF THEN ELSE ENDIF
 %token REPEAT UNTIL ENDREPEAT
 %token FOR TO ENDFOR PARFOR ENDPARFOR
 %token PRIVATE REDUCE
 %token PROC ENDPROC PARPROC ENDPARPROC
-%token EQ NEQ LT LTE GT GTE
+%token EQ NE LT LE GT GE
 %token DO WHILE ENDWHILE
 %token MIN MAX
 %token INT REAL
@@ -177,10 +182,12 @@
 %token READ WRITE
 %token IN OUT INOUT REF
 %token END_OF_FILE 
+%token COLON COMMA SEMI
 
 // type information for terminal tokens: identifiers and numbers
 %token<str_ptr> ID 
-%token<double_val> NUMBER
+%token<double_val> REALNUMBER
+%token<int_val> INTNUMBER
 
 // associativity and precedence of operators
 %right ASSIGN
@@ -189,7 +196,7 @@
 %left NOT
 %left GTE LTE EQ NEQ GT LT
 %left MINUS PLUS 
-%left MULT DIVIDE
+%left TIMES DIVIDE
 %left DIV MOD
 %nonassoc USIGN
 %nonassoc IF
@@ -268,11 +275,12 @@ assignment:		variable ASSIGN expression
 			;
 expression:		variable
 			| variable LBRACE expression RBRACE 
-			| NUMBER
+			| INTNUMBER
+			| REALNUMBER
 			| expression DIV expression
 			| expression MOD expression
 			| expression DIVIDE expression
-			| expression MULT expression
+			| expression TIMES expression
 			| expression PLUS expression	{/*printf("expr+expr rule triggered at %d.\n", yylineno);*/}
 			| expression MINUS expression	{/*printf("expr-expr rule triggered at %d.\n", yylineno);*/}
 			| INT LPAREN expression RPAREN
@@ -395,6 +403,8 @@ expressionGroup:	expressionGroup ',' expression
 /***********************************************
  * subroutines                                 *
  ***********************************************/
+
+#include "pseudo.yy.c"
 
 /*
 * use - how to use program (exit)

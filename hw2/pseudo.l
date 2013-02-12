@@ -28,10 +28,10 @@ realnum	{digit}+(\.{digit}+)?
 "<"	{ return (LT); }
 ">="	{ return (GE); }
 ">"	{ return (GT); }
-"("	{ return (OPENPAR); }
-")"	{ return (CLOSEPAR); }
-"["	{ return (OPENBRACKET); }
-"]"	{ return (CLOSEBRACKET); }
+"("	{ return (LPAREN); }
+")"	{ return (RPAREN); }
+"["	{ return (LBRACE); }
+"]"	{ return (RBRACE); }
 ";"	{ return (SEMI); }
 "DIV"	{ return (DIV); }
 "MOD"	{ return (MOD); }
@@ -76,8 +76,8 @@ realnum	{digit}+(\.{digit}+)?
 "INT"		{  return INT; }
 
 {id}	{ yylval.str_ptr = (char *) strdup(yytext); return (ID); }
-{intnum}	{ yylval.int_val = atoi(yytext); return (INTNUM); }
-{realnum}	{ sscanf(yytext, "%lf", &yylval.double_val); return (REALNUM); }
+{intnum}	{ yylval.int_val = atoi(yytext); return (INTNUMBER); }
+{realnum}	{ sscanf(yytext, "%lf", &yylval.double_val); return (REALNUMBER); }
 [ \t\n]	;
 .	{ char msg[] = "lexical error at token ";
 	  char *s = (char *) calloc(1, strlen(msg) + yyleng + 1);
