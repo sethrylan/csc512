@@ -70,7 +70,7 @@ jasmin:
 
 rmjasmin:
 	@$(RM) -fr Keyboard.java jasmin-2.4.zip jasmin-2.4 jasmin.jar
-	@$(UNLINK) jasmin.jar
+	@unlink jasmin.jar
 
 	
 #test: all testfiles
