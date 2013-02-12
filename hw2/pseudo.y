@@ -1,4 +1,3 @@
-
 %{
 	#include <stdio.h>
 	#include <stdlib.h>
@@ -150,11 +149,9 @@
 %}
 
 
-/***********************************************
- * defintions: token, precedence, types etc.   *
- ***********************************************/
+/* defintions: token, precedence, types etc. */
 
-//%start program
+%start program
 
 %union {
 	char *str_ptr;
@@ -163,7 +160,6 @@
 	var_type var_type_val;
 	/*Feel free to add any other data types*/
 }
-
 
 // terminal token declaration
 %token ASSIGN VAR BEGINSYM END
@@ -179,35 +175,34 @@
 %token INT REAL
 %token LPAREN RPAREN
 %token LBRACE RBRACE
+%token COLON COMMA SEMICOLON
 %token END_OF_FILE 
-%token COLON COMMA SEMI
 
 // type information for terminal tokens: identifiers and numbers
 %token<str_ptr> IDENTIFIER 
 %token<double_val> REALNUMBER
 %token<int_val> INTNUMBER
 
+%type<str_ptr> program
+%type<str_ptr> comparisonExpr
+%type<str_ptr> input
+%type<var_type_val> basicType
+%type<str_ptr> statementGroup
+//%type<str_ptr> whileLoop
+
+
 // associativity and precedence of operators
 %right ASSIGN
 %left AND
 %left OR
 %left NOT
-%left GE GT LT LE EQ NE 
+%left GTE LTE EQ NEQ GT LT
 %left MINUS PLUS 
-%left TIMES DIVIDE
+%left MULT DIVIDE
 %left DIV MOD
 %nonassoc USIGN
 %nonassoc IF
 %nonassoc ELSE
-
-%type<str_ptr> comparisonExpr
-//%type<int_val> block
-
-%type<str_ptr> program
-%type<str_ptr> input
-%type<var_type_val> basicType
-%type<str_ptr> statementGroup
-%type<str_ptr> whileLoop
 
 %%
 
@@ -215,58 +210,49 @@
  * Grammar Production Rules                    *
  ***********************************************/
 
-program : block END_OF_FILE {
-		fprintf(yyout, "  .limit stack %d ; so many items can be pushed\n", maxstacksize);
-		fprintf(yyout, "  .limit locals %d ; so many variables exist (doubles need 2 items)\n", maxsym + 1);
-		fprintf(yyout, "%s", $$);
-		//exit(0);
-	}
-	;
 
-
-// added
-variable:		IDENTIFIER				{}
+program: 		block END_OF_FILE  {
+				//fprintf(yyout, "  .limit stack %d ; so many items can be pushed\n", maxstacksize);
+				//fprintf(yyout, "  .limit locals %d ; so many variables exist (doubles need 2 items)\n", maxsym + 1);
+				//fprintf(yyout, "%s", $$);
+				exit(0);
+			}
+			;
+variable:		IDENTIFIER
 			;
 block:			declarations BEGINSYM statementGroup END
 			| BEGINSYM statementGroup END
 			;
 statementGroup:		statementGroup statement
-			| 				{}
+			| 					{}
 			;
 declarations:		VAR varListGroup
 			;
-varListGroup:		varListGroup varList ':' type ';'
-			|
+varListGroup:		varListGroup varList COLON type SEMICOLON
+			|					{}
 			;
 varList: 		variable variableGroup
 			;
-variableGroup:		variableGroup ',' variable
+variableGroup:		variableGroup COMMA variable
 			| 
 			;
 type:			basicType 
 			| arrayType
 			;
-
-basicType:		INT {
-				$$ = L;
-			} 
-			| REAL {
-				$$ = D;
-			}
-			;
-
-//added
 arrayType:		basicType LBRACE expression RBRACE
 			;
-statement:		assignment ';' 
-			| block ';' 
-			| test ';' 
-			| loop ';' 
-			| input ';' 
-			| output ';' 
-			| procedure ';' 
-			| procCall ';'
-			| error ';'
+basicType:		INT				{}
+			| REAL				{}
+			;
+statement:		assignment SEMICOLON
+			| block SEMICOLON 
+			| test SEMICOLON 
+			| loop SEMICOLON 
+			| input SEMICOLON 
+			| output SEMICOLON 
+			| procedure SEMICOLON 
+			| procCall SEMICOLON
+			| error SEMICOLON
 			;
 assignment:		variable ASSIGN expression
 			| variable LBRACE expression RBRACE ASSIGN expression
@@ -278,7 +264,7 @@ expression:		variable
 			| expression DIV expression
 			| expression MOD expression
 			| expression DIVIDE expression
-			| expression TIMES expression
+			| expression MULT expression
 			| expression PLUS expression	{/*printf("expr+expr rule triggered at %d.\n", yylineno);*/}
 			| expression MINUS expression	{/*printf("expr-expr rule triggered at %d.\n", yylineno);*/}
 			| INT LPAREN expression RPAREN
@@ -286,11 +272,11 @@ expression:		variable
 			| MINUS expression %prec USIGN	{/*printf("uminus rule triggered at %d.\n", yylineno);*/}
 			;
 comparisonOp:		EQ				{}
-			| NE				{}
+			| NEQ				{}
 			| LT				{}
 			| GT				{}
-			| LE				{}
-			| GE				{}
+			| LTE				{}
+			| GTE				{}
 			;
 comparisonExpr:		expression comparisonOp expression	{return 1; /* TODO */}
 			| comparisonExpr AND comparisonExpr
@@ -300,12 +286,12 @@ comparisonExpr:		expression comparisonOp expression	{return 1; /* TODO */}
 test:			IF comparisonExpr THEN statementGroup ENDIF
 			| IF comparisonExpr THEN statementGroup ELSE statementGroup ENDIF
 			;
-loop:			whileLoop
-			| repeatLoop
-			| forLoop
-			| parforLoop
+loop:			WHILE comparisonExpr DO statementGroup ENDWHILE
+			| REPEAT statementGroup UNTIL comparisonExpr ENDREPEAT
+			| FOR variable ASSIGN expression TO expression DO statementGroup ENDFOR
+			| PARFOR variable ASSIGN expression TO expression parMod DO statementGroup ENDPARFOR
 			;
-
+/*
 whileLoop:		WHILE comparisonExpr DO statementGroup ENDWHILE {
 				sprintf(go_l1, "  ifne Label%d\n", label);
 				sprintf(l1, "Label%d:\n", label++);
@@ -325,15 +311,7 @@ whileLoop:		WHILE comparisonExpr DO statementGroup ENDWHILE {
 				stack(-1);
 			}
 			;
-
-repeatLoop:		REPEAT statementGroup UNTIL comparisonExpr ENDREPEAT
-			;
-forLoop:		FOR variable ASSIGN expression TO expression DO statementGroup ENDFOR
-			;
-
-parforLoop:		PARFOR variable ASSIGN expression TO expression parMod DO statementGroup ENDPARFOR
-			;
-
+*/
 parMod:			reduceGroup
 			| PRIVATE varList reduceGroup
 			;
@@ -345,7 +323,6 @@ reduceOp:		MINUS				{/*printf("-reduceop rule triggered at %d.\n", yylineno);*/}
 			| MIN				{}
 			| MAX				{}
 			;
-
 input:			READ LPAREN IDENTIFIER RPAREN {
 				struct var_info readId = getsym($3);
 				stack(+2);
@@ -362,9 +339,10 @@ input:			READ LPAREN IDENTIFIER RPAREN {
 				}
 				stack(-2);
 			}
+
 			;
 
-//added; should output have an expression?
+//should output have an expression?
 output:			WRITE LPAREN expression RPAREN
 			;
 procedure:		PROC procName LPAREN parametersOption RPAREN block ENDPROC
@@ -377,10 +355,10 @@ parameters:		parameter parameterGroup
 parametersOption:	parameters
 			|
 			;
-parameterGroup:		parameterGroup ',' parameter
+parameterGroup:		parameterGroup COMMA parameter
 			| 
 			;
-parameter:		passBy variable ':' type
+parameter:		passBy variable COLON type
 			;
 passBy:			IN
 			| OUT
@@ -392,7 +370,7 @@ procCall:		variable LPAREN arguments RPAREN
 arguments:		expression expressionGroup
 			|					/* added epsilon alternative not in EBNF spec */
 			;
-expressionGroup:	expressionGroup ',' expression
+expressionGroup:	expressionGroup COMMA expression
 			| 
 			;
 
@@ -413,7 +391,10 @@ void use() {
 }
 
 int main(int argc, char *argv[]) {
-	// much more than just 'return yyparse();'
+	// much more than just return yyparse();
+	
+	return yyparse();
+/*
 	int result;
 	char *basename;
 	char *pos = NULL;
@@ -471,6 +452,7 @@ int main(int argc, char *argv[]) {
 	fprintf(yyout, "   ; done\n");
 	fprintf(yyout, "   return\n");
 	fprintf(yyout, ".end method\n");
+*/
 }
 
 /*
@@ -478,5 +460,6 @@ int main(int argc, char *argv[]) {
  */
 yyerror(char *s) {
 	fprintf(stderr, "line %d: illegal character (%s)\n", yylineno, yytext);
+	//fprintf(stderr, "%s in line %d at %s\n", err, yylineno, yytext);
 }
 
