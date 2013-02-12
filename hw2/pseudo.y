@@ -29,17 +29,6 @@
 		AD = 3  /*double array*/
 	} var_type;
 
-	typedef struct syment_s {
-		char *s;
-		int offset;
-		var_type type;
-		struct syment_s *next;
-	} *syment;
-
-	typedef struct Scope{
-		syment sym_table;
-		struct Scope* parent;
-	} *Scope;
 
 	struct var_info {
 		int offset;
@@ -47,6 +36,28 @@
 	};
 
 	typedef struct var_info var_info;
+
+	struct symrec {
+		char *name;  /* name of symbol */
+		var_info var_info;
+		union {
+			double var;      /* value of a VAR */
+			//func_t fnctptr;  /* value of a FNCT */
+		} value;
+		struct symrec *next;  /* link field */
+	};
+
+	typedef struct symrec symrec;
+
+
+	typedef struct Scope {
+		//syment sym_table;
+		struct symrec* table;
+		struct Scope* parent;
+	} *Scope;
+
+
+
 
 	void beginScope();
 	void endScope();
@@ -157,7 +168,7 @@
 	char *str_ptr;
 	int int_val;
 	double double_val;
-	var_type var_type_val;
+	var_info var_info;
 	/*Feel free to add any other data types*/
 }
 
@@ -183,13 +194,36 @@
 %token<double_val> REALNUMBER
 %token<int_val> INTNUMBER
 
+// type information for nonterminals
 %type<str_ptr> program
-%type<str_ptr> comparisonExpr
-%type<str_ptr> input
+%type<var_info> variable
+%type<str_ptr> block
+%type<str_ptr> declarations
+//varListGroup
+//varList
+//variableGroup
+%type<var_type_val> type
 %type<var_type_val> basicType
+%type<var_type_val> arrayType
+//statement
 %type<str_ptr> statementGroup
+%type<str_ptr> assignment
+%type<double_val> expression
+%type<str_ptr> comparisonOp
+%type<str_ptr> comparisonExpr
+%type<str_ptr> test
+%type<str_ptr> loop
 %type<str_ptr> whileLoop
-
+%type<str_ptr> repeatLoop
+%type<str_ptr> forLoop
+%type<str_ptr> input
+%type<str_ptr> output
+%type<str_ptr> procedure
+%type<str_ptr> parameters
+//parametersOption
+%type<str_ptr> parameterGroup
+//parameter
+//passBy
 
 // associativity and precedence of operators
 %right ASSIGN
@@ -218,15 +252,15 @@ program: 		block END_OF_FILE  {
 				exit(0);
 			}
 			;
-variable:		IDENTIFIER
+variable:		IDENTIFIER					{ $$ = getsym($1); }
 			;
-block:			declarations BEGINSYM statementGroup END
-			| BEGINSYM statementGroup END
+block:			declarations BEGINSYM statementGroup END	{}
+			| BEGINSYM statementGroup END			{}
 			;
 statementGroup:		statementGroup statement
-			| 					{}
+			| 						{}
 			;
-declarations:		VAR varListGroup
+declarations:		VAR varListGroup				{}
 			;
 varListGroup:		varListGroup varList COLON type SEMICOLON
 			|					{}
@@ -241,8 +275,8 @@ type:			basicType
 			;
 arrayType:		basicType LBRACE expression RBRACE
 			;
-basicType:		INT				{}
-			| REAL				{}
+basicType:		INT								{}
+			| REAL								{}
 			;
 statement:		assignment SEMICOLON
 			| block SEMICOLON 
@@ -253,12 +287,12 @@ statement:		assignment SEMICOLON
 			| procedure SEMICOLON 
 			| error SEMICOLON
 			;
-assignment:		variable ASSIGN expression
-			| variable LBRACE expression RBRACE ASSIGN expression
+assignment:		variable ASSIGN expression					{}
+			| variable LBRACE expression RBRACE ASSIGN expression		{}
 			;
-expression:		variable
+expression:		variable							{}
 			| variable LBRACE expression RBRACE 
-			| INTNUMBER
+			| INTNUMBER					{ }
 			| REALNUMBER
 			| expression DIV expression
 			| expression MOD expression
@@ -351,11 +385,11 @@ input:			READ LPAREN IDENTIFIER RPAREN {
 //should output have an expression?
 output:			WRITE LPAREN expression RPAREN
 			;
-procedure:		PROC procName LPAREN parametersOption RPAREN block ENDPROC
-			| PARPROC procName LPAREN parametersOption RPAREN block ENDPARPROC
+procedure:		PROC IDENTIFIER LPAREN parametersOption RPAREN block ENDPROC
+			| PARPROC IDENTIFIER LPAREN parametersOption RPAREN block ENDPARPROC
 			;
-procName:		IDENTIFIER				{}
-			;
+//procName:		IDENTIFIER				{}
+//			;
 parameters:		parameter parameterGroup
 			;
 parametersOption:	parameters
