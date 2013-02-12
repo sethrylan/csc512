@@ -165,27 +165,25 @@
 }
 
 
-%token ASSIGN VAR BEGIN_K END
-%token PLUS MINUS TIMES DIV DIVIDE MOD
-%token AND OR NOT
-%token IF THEN ELSE ENDIF
+// terminal token declaration
+%token ASSIGN VAR BEGINSYM END
+%token THEN ENDIF
+%token WHILE DO ENDWHILE
 %token REPEAT UNTIL ENDREPEAT
 %token FOR TO ENDFOR PARFOR ENDPARFOR
 %token PRIVATE REDUCE
 %token PROC ENDPROC PARPROC ENDPARPROC
-%token EQ NE LT LE GT GE
-%token DO WHILE ENDWHILE
+%token WRITE READ
+%token IN OUT INOUT REF
 %token MIN MAX
 %token INT REAL
 %token LPAREN RPAREN
 %token LBRACE RBRACE
-%token READ WRITE
-%token IN OUT INOUT REF
 %token END_OF_FILE 
 %token COLON COMMA SEMI
 
 // type information for terminal tokens: identifiers and numbers
-%token<str_ptr> ID 
+%token<str_ptr> IDENTIFIER 
 %token<double_val> REALNUMBER
 %token<int_val> INTNUMBER
 
@@ -194,7 +192,7 @@
 %left AND
 %left OR
 %left NOT
-%left GTE LTE EQ NEQ GT LT
+%left GE GT LT LE EQ NE 
 %left MINUS PLUS 
 %left TIMES DIVIDE
 %left DIV MOD
@@ -227,10 +225,10 @@ program : block END_OF_FILE {
 
 
 // added
-variable:		ID				{}
+variable:		IDENTIFIER				{}
 			;
-block:			declarations BEGIN_K statementGroup END
-			| BEGIN_K statementGroup END
+block:			declarations BEGINSYM statementGroup END
+			| BEGINSYM statementGroup END
 			;
 statementGroup:		statementGroup statement
 			| 				{}
@@ -288,11 +286,11 @@ expression:		variable
 			| MINUS expression %prec USIGN	{/*printf("uminus rule triggered at %d.\n", yylineno);*/}
 			;
 comparisonOp:		EQ				{}
-			| NEQ				{}
+			| NE				{}
 			| LT				{}
 			| GT				{}
-			| LTE				{}
-			| GTE				{}
+			| LE				{}
+			| GE				{}
 			;
 comparisonExpr:		expression comparisonOp expression	{return 1; /* TODO */}
 			| comparisonExpr AND comparisonExpr
@@ -348,7 +346,7 @@ reduceOp:		MINUS				{/*printf("-reduceop rule triggered at %d.\n", yylineno);*/}
 			| MAX				{}
 			;
 
-input:			READ LPAREN ID RPAREN {
+input:			READ LPAREN IDENTIFIER RPAREN {
 				struct var_info readId = getsym($3);
 				stack(+2);
 				if(readId.type == D) { 	
@@ -372,7 +370,7 @@ output:			WRITE LPAREN expression RPAREN
 procedure:		PROC procName LPAREN parametersOption RPAREN block ENDPROC
 			| PARPROC procName LPAREN parametersOption RPAREN block ENDPARPROC
 			;
-procName:		ID				{}
+procName:		IDENTIFIER				{}
 			;
 parameters:		parameter parameterGroup
 			;
@@ -415,6 +413,7 @@ void use() {
 }
 
 int main(int argc, char *argv[]) {
+	// much more than just 'return yyparse();'
 	int result;
 	char *basename;
 	char *pos = NULL;
@@ -474,6 +473,9 @@ int main(int argc, char *argv[]) {
 	fprintf(yyout, ".end method\n");
 }
 
+/*
+ * yyerror - returns error msg "err" and line number
+ */
 yyerror(char *s) {
 	fprintf(stderr, "line %d: illegal character (%s)\n", yylineno, yytext);
 }
