@@ -1,0 +1,8 @@
+VAR BEGIN
+IF 	b
+	>
+	1
+	THEN 
+WRITE(a);
+    ENDIF;
+			END

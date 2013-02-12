@@ -1,0 +1,10 @@
+VAR a:INT;
+BEGIN
+	FOR i:=5 MOD 1 TO 10 DIV 2 DO ENDFOR;
+	FOR I:=ii TO iii DO
+		iii:=iiii*iiiiiii*1;
+		FOR i:=1 TO 0 DO
+			i:=i+1;
+		ENDFOR;
+	ENDFOR;
+END

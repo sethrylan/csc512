@@ -1,0 +1,8 @@
+VAR a:INT;
+BEGIN
+WHILE a=b DO
+	a:=c;
+	WHILE A=A DO
+	ENDWHILE;
+ENDWHILE;
+END

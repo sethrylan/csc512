@@ -1,8 +1,8 @@
 CFLAGS= -Wall -ggdb --pedantic
 PROJDIRS := .
-#TESTDIR := ./test
-#TESTFILES := $(shell find $(TESTDIR) -type f -name "*.input")
-CALCTESTDIR := ./calc_test
+PSEUDOPARSETESTDIR := ./test_pseudo_parse
+PSEUDOPARSETESTFILES := $(shell find $(PSEUDOPARSETESTDIR) -type f -name "*.input")
+CALCTESTDIR := ./test_calc
 CALCTESTFILES := $(shell find $(CALCTESTDIR) -type f -name "*.input")
 JASMIN_DIR := ./jasmin_files
 
@@ -31,6 +31,7 @@ clean:
 	@$(RM) -f *.tab.* 
 	@$(RM) -f *.output
 	@$(RM) -f $(CALCTESTDIR)/*.output 
+	@$(RM) -f $(PSEUDOPARSETESTDIR)/*.output
 
 testcalc: calc calctestfiles
 	-@rc=0; count=0; \
@@ -74,17 +75,17 @@ rmjasmin:
 rmbakfiles:
 	@$(RM) -f ./*~
 	
-#test: all testfiles
-#	-@rc=0; count=0; \
-#	for input_file in $(TESTFILES); do \
-#		testname=`basename $$input_file .input`; \
-#		output_file=$(TESTDIR)/$$testname.output; \
-#		expected_file=$(TESTDIR)/$$testname.expected; \
-#		echo " TESTING $$testname"; \
-#		./pseudo < $$input_file 2> $$output_file; \
-#		diff $$expected_file $$output_file > /dev/null || (echo -ne "\r  ....FAILED. See $$testname.output for failures." >&2 && false);  \
-#		rc=`expr $$rc + $$?`; count=`expr $$count + 1`;\
-#	done; \
-#	echo; echo " Tests run: $$count,  Failures: $$rc"
+testpseudoparse: all pseudoparsetestfiles
+	-@rc=0; count=0; \
+	for input_file in $(PSEUDOPARSETESTFILES); do \
+		testname=`basename $$input_file .input`; \
+		output_file=$(PSEUDOPARSETESTDIR)/$$testname.output; \
+		expected_file=$(PSEUDOPARSETESTDIR)/$$testname.expected; \
+		echo " TESTING $$testname"; \
+		./pseudo < $$input_file 2> $$output_file; \
+		diff $$expected_file $$output_file > /dev/null || (echo -ne "\r  ....FAILED. See $$testname.output for failures." >&2 && false);  \
+		rc=`expr $$rc + $$?`; count=`expr $$count + 1`;\
+	done; \
+	echo; echo " Tests run: $$count,  Failures: $$rc"
 
-#testfiles: $(TESTFILES)
+pseudoparsetestfiles: $(PSEUDOPARSETESTFILES)
