@@ -73,22 +73,26 @@ MAX			{return MAX;}
 ":"			{return COLON;}
 ","			{return COMMA;}
 ";"			{return (SEMICOLON);}
-
 <<EOF>>			{return END_OF_FILE;}
 
 {whitespace}		;  /* ignore whitespace */
 
-{id}			{yylval.str_ptr = strdup(yytext);
-			 return IDENTIFIER;
+{id}			{ yylval.str_ptr = strdup(yytext);
+			  symrec *s;
+			  s = get_symbol(yylval.str_ptr);
+			  if (s == 0)
+				s = add_symbol(yylval.str_ptr, IDENTIFIER);	// TODO: var_type should be of kind L/D/AL/AD
+			  yylval.table_ptr = s;
+			  return IDENTIFIER;
 			}
 
-{intnum}		{yylval.long_val = atol(yytext); 
-			 return (INTNUMBER);
-// TODO: use resWord() and symLookup to return symbol table index
+{intnum}		{ yylval.long_val = atol(yytext); 
+			  return (INTNUMBER);
+			  // TODO: use resWord() and symLookup to return symbol table index
 			}
 
-{realnum}		{sscanf(yytext, "%lf", &yylval.double_val); 
-			 return (REALNUMBER);
+{realnum}		{ sscanf(yytext, "%lf", &yylval.double_val); 
+			  return (REALNUMBER);
 			}
 
 .			{ char msg[] = "lexical error at token ";

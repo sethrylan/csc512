@@ -19,7 +19,6 @@
 	int label = 0;
 	int maxstacksize = 0;
 	int stacksize = 0;
-
 	int maxsym = 0;
 
 	char s[1024], t[1024];
@@ -35,7 +34,7 @@
 
 	struct var_info {
 		int offset;
-		var_type type;
+		var_type var_type;
 	};
 	typedef struct var_info var_info;
 
@@ -50,29 +49,61 @@
 	};
 	typedef struct symrec symrec;
 
+	symrec *symbol_table = (symrec *)0;
+
+	var_info * make_var_info(var_type var_type, int offset) {
+		var_info *var_info = malloc(sizeof *var_info); 
+		if(var_info == NULL) {
+			return NULL;
+		} else {
+			//strcpy(&(var_info->name), _name);
+			var_info->var_type = var_type;
+			var_info->offset = offset;
+			return var_info;
+		}
+	}
+
+	/*
 	typedef struct scope {
 		//syment sym_table;
 		struct symrec* symbol_table;
 		struct scope* parent;
 	} *scope;
-
+	scope *scope_table;
+	*/
 
 	void beginScope();
 	void endScope();
 
-	symrec* add_symbol(char *symbol_name, var_type symbol_type); /* returns stack location for variable s*/
-
-	/* return metadata for symbol s like location, type and so on */
-	symrec* get_symbol(char *symbol_name) {
+	/* returns stack location for variable s*/
+	symrec* add_symbol(char *symbol_name, var_type symbol_type) {
+		symrec *ptr;
+		ptr = (symrec *)malloc(sizeof (symrec));
+		ptr->symbol_name = (char *)malloc(strlen(symbol_name) + 1);
+		strcpy(ptr->symbol_name, symbol_name);
 		
+		// add var_info to symbol pointer
+		ptr->var_info = *make_var_info(symbol_type, 1);     //TODO
+		ptr->next = (struct symrec *)symbol_table;
+		symbol_table = ptr;
+		return ptr;
 	}
 
-	/*
-	typedef struct struct var_info {
+	/* return metadata for symbol s like location, type and so on */
+	symrec* get_symbol(char const  *symbol_name) {
+		symrec *ptr;
+		for (ptr = symbol_table; ptr != (symrec *)0; ptr = (symrec *)ptr->next) {
+			if (strcmp(ptr->symbol_name, symbol_name) == 0) {
+				return ptr;
+			}
+		}
+		return 0;
+	}
+	
+	/*typedef struct struct var_info {
 		int offset;
 		var_type type;
-	} *var_info;
-	*/
+	} *var_info;*/
 
 	/*
 	 * stack - change stack size
@@ -107,9 +138,12 @@
 		return s;
 	}
 
+	/*
+	 * return string "lload/dload/aload <i>" for i-th variable which is "symbol_name" in symbol table
+	 */
 	char *load(char *symbol_name) {
 		symrec* symbol = get_symbol(symbol_name);
-		switch(symbol->var_info.type) {
+		switch(symbol->var_info.var_type) {
 			case L:
 				sprintf(t, "  lload %d ; load long %s \n", symbol->var_info.offset, symbol_name);
 				break;
@@ -128,11 +162,11 @@
 	}
 
 	/*
-	 * return string "dstore <i>" for i-th variable "sym" in symbol table
+	 * return string "dstore/lstore/astore <i>" for i-th variable which is "symbol_name" in symbol table
 	 */
 	char *store(char *symbol_name) {
 		symrec* symbol = get_symbol(symbol_name);
-		switch(symbol->var_info.type) {
+		switch(symbol->var_info.var_type) {
 			case L:
 				sprintf(t, "  lstore %d ;  storing %s var \n", symbol->var_info.offset, symbol_name);
 				break;
@@ -182,7 +216,7 @@
 %token END_OF_FILE 
 
 // type information for terminal tokens: identifiers and numbers
-%token<table_ptr> IDENTIFIER    // TODO type should be of symbol
+%token<table_ptr> IDENTIFIER
 %token<double_val> REALNUMBER
 %token<long_val> INTNUMBER
 
@@ -200,9 +234,9 @@
 %type<str_ptr> statement	//
 %type<str_ptr> statementGroup
 %type<table_ptr> assignment
-%type<double_val> expression
+%type<str_ptr> expression
 %type<str_ptr> comparisonOp
-%type<str_ptr> comparisonExpr  // maybe an long_val
+%type<str_ptr> comparisonExpr 
 %type<str_ptr> test
 %type<str_ptr> loop
 %type<str_ptr> whileLoop
@@ -244,18 +278,18 @@ program: 		block END_OF_FILE  {
 				exit(0);
 			}
 			;
-variable:		IDENTIFIER					{ $$ = get_symbol($1->symbol_name); }
+variable:		IDENTIFIER							{ $$ = get_symbol($1->symbol_name); }
 			;
-block:			declarations BEGINSYM statementGroup END	{}
-			| BEGINSYM statementGroup END			{}
+block:			declarations BEGINSYM statementGroup END			{}
+			| BEGINSYM statementGroup END					{}
 			;
 statementGroup:		statementGroup statement
-			| 						{}
+			| 								{}
 			;
-declarations:		VAR varListGroup				{}
+declarations:		VAR varListGroup						{}
 			;
 varListGroup:		varListGroup varList COLON type SEMICOLON
-			|					{}
+			|								{ /* empty rule for typed nonterminal */ }
 			;
 varList: 		variable variableGroup
 			;
@@ -270,7 +304,7 @@ arrayType:		basicType LBRACE expression RBRACE				{ $$ = $1 == L ? AL : AD; }
 basicType:		INT								{ $$ = L; }
 			| REAL								{ $$ = D; }
 			;
-statement:		assignment SEMICOLON				
+statement:		assignment SEMICOLON						{ /* convert assignment table_ptr to byte code */ }
 			| block SEMICOLON 
 			| test SEMICOLON 
 			| loop SEMICOLON 
@@ -282,25 +316,33 @@ statement:		assignment SEMICOLON
 assignment:		variable ASSIGN expression					
 			| variable LBRACE expression RBRACE ASSIGN expression
 			;
-expression:		variable							{ symrec *variable_table_ptr = $1;
-											  switch(variable_table_ptr->var_info.type) {
-												case L: $$ = variable_table_ptr->value.long_val;
-												case D: $$ = variable_table_ptr->value.double_val;
-											  }
+expression:		variable							{// seg fault here
+/*
+												fprintf(yyout, "in variable production\n");
+												fprintf(yyout, "$1 exists? %d\n", $1);
+												symrec *variable_table_ptr = get_symbol($1->symbol_name);
+												fprintf(yyout, "in variable production2\n");
+												fprintf(yyout, "variable in table? %d\n", variable_table_ptr);
+												fprintf(yyout, "variable has field? %d\n", variable_table_ptr->var_info);
+												switch(variable_table_ptr->var_info.type) {
+													case L: $$ = variable_table_ptr->value.long_val;
+													case D: $$ = variable_table_ptr->value.double_val;
+												}
+*/
 											}
-			| variable LBRACE expression RBRACE 				// semantic use?
-			| INTNUMBER							{ $$ = $1; }
-			| REALNUMBER							{ $$ = $1; }
-			| expression DIV expression					{ $$ = (div($1,$3)).quot; } 
-			| expression MOD expression					{ $$ = (div($1,$3)).rem; }
-			| expression DIVIDE expression					{ $$ = $1 / $3; }
-			| expression MULT expression					{ $$ = $1 * $3; }
-			| expression PLUS expression					{ $$ = $1 + $3; }
-			| expression MINUS expression					{ $$ = $1 - $3; }
-			| LPAREN expression RPAREN					{ $$ = $2; }
-			| INT LPAREN expression RPAREN					{ $$ = round($3); }
-			| PLUS expression %prec USIGN					{ $$ = $2; }
-			| MINUS expression %prec USIGN					{ $$ = -$2; }
+			| variable LBRACE expression RBRACE 				{   }   // array element
+			| INTNUMBER							{   }
+			| REALNUMBER							{   }
+			| expression DIV expression					{   }
+			| expression MOD expression					{   }
+			| expression DIVIDE expression					{   }
+			| expression MULT expression					{   }
+			| expression PLUS expression					{   }
+			| expression MINUS expression					{   }
+			| LPAREN expression RPAREN					{   }
+			| INT LPAREN expression RPAREN					{   }
+			| PLUS expression %prec USIGN					{   }
+			| MINUS expression %prec USIGN					{   }
 			;
 comparisonOp:		EQ								{ $$ = "if_icmpeq"; }
 			| NEQ								{ $$ = "if_icmpne"; }
@@ -314,14 +356,22 @@ comparisonExpr:		expression comparisonOp expression	{return 1; /* TODO */}
 			| comparisonExpr OR comparisonExpr
 			| NOT comparisonExpr			{return 0; /* TODO */}
 			;
-test:			IF comparisonExpr THEN statementGroup ENDIF
-			| IF comparisonExpr THEN statementGroup ELSE statementGroup ENDIF
+test:			IF comparisonExpr THEN statementGroup ENDIF				{ /* generate if statement bytecode */ }
+			| IF comparisonExpr THEN statementGroup ELSE statementGroup ENDIF	{ /* generate if statement bytecode */ }
 			;
 loop:			whileLoop
 			| repeatLoop
 			| forLoop
 			;
-whileLoop:		WHILE comparisonExpr DO statementGroup ENDWHILE 	{
+whileLoop:		WHILE comparisonExpr DO statementGroup ENDWHILE		{
+										/*
+										goto Label2
+										Label1:
+										<statementGroup>
+										Label2:
+										<comparisonExpr>
+										  ifne Label1
+										*/
 										sprintf(go_l1, "  ifne Label%d\n", label);
 										sprintf(l1, "Label%d:\n", label++);
 										sprintf(goto_l2, "  goto Label%d\n", label);
@@ -330,88 +380,62 @@ whileLoop:		WHILE comparisonExpr DO statementGroup ENDWHILE 	{
 										       concat(
 											 concat(
 											   concat(
-											     concat(
-											       strdup(goto_l2),
-												 strdup(l1)),
-											       $4),
-											     strdup(l2)),
-											   $2),
-										  strdup(go_l1));
+											     concat(strdup(goto_l2), strdup(l1))
+											       , $4),
+												 strdup(l2)),
+												   $2),
+										     		    strdup(go_l1));
 										stack(-1);
 										}
 			;
-repeatLoop:		REPEAT statementGroup UNTIL comparisonExpr ENDREPEAT
+repeatLoop:		REPEAT statementGroup UNTIL comparisonExpr ENDREPEAT			{ /* generate bytecode */ }
 			;
-forLoop:		FOR variable ASSIGN expression TO expression DO statementGroup ENDFOR
+forLoop:		FOR variable ASSIGN expression TO expression DO statementGroup ENDFOR	{ /* generate bytecode */ }
 			;
-/*
-parforLoop:		PARFOR variable ASSIGN expression TO expression parMod DO statementGroup ENDPARFOR
-			;
-
-parMod:			reduceGroup
-			| PRIVATE varList reduceGroup
-			;
-reduceGroup:		reduceGroup REDUCE reduceOp varList
-			|
-			;
-reduceOp:		MINUS				{}
-			|PLUS				{}
-			| MIN				{}
-			| MAX				{}
-			;
-*/
 input:			READ LPAREN IDENTIFIER RPAREN {
-				symrec* read_symbol = get_symbol($3->symbol_name);
-				struct var_info read_symbol_info = read_symbol->var_info;
-				stack(+2);
-				if(read_symbol_info.type == D) { 	
-					$$ = concat(
-					strdup("  invokestatic Keyboard/readDouble()D\n"),
-					strdup(store($3->symbol_name)));
-				} else if(read_symbol_info.type == L) {
-					$$ = concat(
-					strdup("  invokestatic Keyboard/readInt()I\n  i2l\n"),
-					strdup(store($3->symbol_name)));
-				} else {
-					yyerror("cannot read arrays\n");
-					exit(1);
-				}
-				stack(-2);
-			}
+							// segfault here as well
+/*
+							symrec* read_symbol = get_symbol($3->symbol_name);
+							struct var_info read_symbol_info = read_symbol->var_info;
+							stack(+2);
+							if(read_symbol_info.type == D) { 	
+								$$ = concat(
+								strdup("  invokestatic Keyboard/readDouble()D\n"),
+								strdup(store($3->symbol_name)));
+							} else if(read_symbol_info.type == L) {
+								$$ = concat(
+								strdup("  invokestatic Keyboard/readInt()I\n  i2l\n"),
+								strdup(store($3->symbol_name)));
+							} else {
+								yyerror("cannot read arrays\n");
+								exit(1);
+							}
+							stack(-2);
+*/
+						}
 			;
 
 //should output have an expression?
-output:			WRITE LPAREN expression RPAREN
+output:			WRITE LPAREN expression RPAREN							{ /* generate bytecode */ }
 			;
-procedure:		PROC IDENTIFIER LPAREN parametersOption RPAREN block ENDPROC
-			| PARPROC IDENTIFIER LPAREN parametersOption RPAREN block ENDPARPROC
+procedure:		PROC IDENTIFIER LPAREN parametersOption RPAREN block ENDPROC			{ /* generate bytecode */ }
+			| PARPROC IDENTIFIER LPAREN parametersOption RPAREN block ENDPARPROC		{ /* generate bytecode */ }
 			;
-parameters:		parameter parameterGroup
+parameters:		parameter parameterGroup							{ /* generate bytecode */ }
 			;
-parametersOption:	parameters
-			|
+parametersOption:	parameters									{ /* generate bytecode */ }
+			|										{ /* empty rule for typed nonterminal */ }
 			;
 parameterGroup:		parameterGroup COMMA parameter
-			| 					{ /* empty rule for typed nonterminal */ }
+			| 										{ /* empty rule for typed nonterminal */ }
 			;
-parameter:		passBy variable COLON type
+parameter:		passBy variable COLON type							{ /* generate bytecode */ }
 			;
-passBy:			IN
-			| OUT
-			| INOUT
-			| REF
+passBy:			IN										{ /* generate bytecode */ }
+			| OUT										{ /* generate bytecode */ }
+			| INOUT										{ /* generate bytecode */ }
+			| REF										{ /* generate bytecode */ }
 			;
-/*
-procCall:		variable LPAREN arguments RPAREN
-			;
-arguments:		expression expressionGroup
-			|
-			;
-
-expressionGroup:	expressionGroup COMMA expression
-			| 
-			;
-*/
 
 %%
 
@@ -432,8 +456,9 @@ void use() {
 int main(int argc, char *argv[]) {
 	// much more than just return yyparse();
 	
-//	return yyparse();
+	return yyparse();
 
+/*
 	int result;
 	char *basename;
 	char *pos = NULL;
@@ -492,6 +517,7 @@ int main(int argc, char *argv[]) {
 	fprintf(yyout, "   return\n");
 	fprintf(yyout, ".end method\n");
 
+*/
 }
 
 /*
