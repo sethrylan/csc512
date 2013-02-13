@@ -4,6 +4,9 @@
 	#include <string.h>
 	#include <math.h>
 
+	/* http://www.cs.tut.fi/~jkorpela/round.html */
+	#define round(x) ((x)>=0?(long)((x)+0.5):(long)((x)-0.5))
+
 	extern FILE *yyin;
 	extern FILE *yyout;
 
@@ -30,44 +33,37 @@
 		AD = 3  /*double array*/
 	} var_type;
 
-
 	struct var_info {
 		int offset;
 		var_type type;
 	};
-
 	typedef struct var_info var_info;
 
 	struct symrec {
-		char *name;  /* name of symbol */
+		char *symbol_name;  /* name of symbol */
 		var_info var_info;
 		union {
-			double var;      /* value of a VAR */
-			//func_t fnctptr;  /* value of a FNCT */
+			long long_val;
+			double double_val;
 		} value;
 		struct symrec *next;  /* link field */
 	};
-
 	typedef struct symrec symrec;
 
-
-	typedef struct Scope {
+	typedef struct scope {
 		//syment sym_table;
-		struct symrec* sym_table;
-		struct Scope* parent;
-	} *Scope;
+		struct symrec* symbol_table;
+		struct scope* parent;
+	} *scope;
 
 
 	void beginScope();
 	void endScope();
 
-	/* returns stack location for variable s*/
-	int addSymbol(char *s, var_type type);
+	symrec* add_symbol(char *symbol_name, var_type symbol_type); /* returns stack location for variable s*/
 
-	/*
-	 * return metadata for symbol s like location, type and so on
-	 */
-	symrec* getsym(char *symbol_name) {
+	/* return metadata for symbol s like location, type and so on */
+	symrec* get_symbol(char *symbol_name) {
 		
 	}
 
@@ -112,17 +108,17 @@
 	}
 
 	char *load(char *symbol_name) {
-		symrec* symbol_info = getsym(symbol_name);
-		switch(symbol_info->var_info.type) {
+		symrec* symbol = get_symbol(symbol_name);
+		switch(symbol->var_info.type) {
 			case L:
-				sprintf(t, "  lload %d ; load long %s \n", symbol_info->var_info.offset, symbol_name);
+				sprintf(t, "  lload %d ; load long %s \n", symbol->var_info.offset, symbol_name);
 				break;
 			case D:
-				sprintf(t, "  dload %d ;load double %s \n", symbol_info->var_info.offset, symbol_name);
+				sprintf(t, "  dload %d ;load double %s \n", symbol->var_info.offset, symbol_name);
 				break;
 			case AL:
 			case AD:
-				sprintf(t, "  aload %d ; load array %s \n", symbol_info->var_info.offset, symbol_name);
+				sprintf(t, "  aload %d ; load array %s \n", symbol->var_info.offset, symbol_name);
 				break;
 			default:
 				printf("error loading symbol");
@@ -135,18 +131,17 @@
 	 * return string "dstore <i>" for i-th variable "sym" in symbol table
 	 */
 	char *store(char *symbol_name) {
-		symrec* symbol_info = getsym(symbol_name);
-		symbol_info = getsym(symbol_name);
-		switch(symbol_info->var_info.type) {
+		symrec* symbol = get_symbol(symbol_name);
+		switch(symbol->var_info.type) {
 			case L:
-				sprintf(t, "  lstore %d ;  storing %s var \n", symbol_info->var_info.offset, symbol_name);
+				sprintf(t, "  lstore %d ;  storing %s var \n", symbol->var_info.offset, symbol_name);
 				break;
 			case D:
-				sprintf(t, "  dstore %d ; storing %s var\n", symbol_info->var_info.offset, symbol_name);
+				sprintf(t, "  dstore %d ; storing %s var\n", symbol->var_info.offset, symbol_name);
 				break;
 			case AL:
 			case AD:
-				sprintf(t, "  astore %d; storing array %s\n", symbol_info->var_info.offset, symbol_name);
+				sprintf(t, "  astore %d; storing array %s\n", symbol->var_info.offset, symbol_name);
 				break;
 		}
 		return strdup(t);
@@ -196,15 +191,15 @@
 %type<table_ptr> variable
 %type<str_ptr> block
 %type<str_ptr> declarations
-//varListGroup
-//varList
-//variableGroup
+%type<str_ptr> varListGroup	//
+%type<table_ptr> varList		//
+%type<str_ptr> variableGroup	//
 %type<var_type> type
 %type<var_type> basicType
 %type<var_type> arrayType
-//statement
+%type<str_ptr> statement	//
 %type<str_ptr> statementGroup
-%type<str_ptr> assignment
+%type<table_ptr> assignment
 %type<double_val> expression
 %type<str_ptr> comparisonOp
 %type<str_ptr> comparisonExpr  // maybe an long_val
@@ -217,10 +212,10 @@
 %type<str_ptr> output
 %type<str_ptr> procedure
 %type<str_ptr> parameters
-//parametersOption
+%type<str_ptr> parametersOption
 %type<str_ptr> parameterGroup
-//parameter
-//passBy
+%type<str_ptr> parameter
+%type<str_ptr> passBy
 
 // associativity and precedence of operators
 %right ASSIGN
@@ -249,7 +244,7 @@ program: 		block END_OF_FILE  {
 				exit(0);
 			}
 			;
-variable:		IDENTIFIER					{ $$ = getsym($1->name); }
+variable:		IDENTIFIER					{ $$ = get_symbol($1->symbol_name); }
 			;
 block:			declarations BEGINSYM statementGroup END	{}
 			| BEGINSYM statementGroup END			{}
@@ -265,7 +260,7 @@ varListGroup:		varListGroup varList COLON type SEMICOLON
 varList: 		variable variableGroup
 			;
 variableGroup:		variableGroup COMMA variable
-			| 
+			| 								{ /* empty rule for typed nonterminal */ }				
 			;
 type:			basicType 
 			| arrayType
@@ -275,39 +270,44 @@ arrayType:		basicType LBRACE expression RBRACE				{ $$ = $1 == L ? AL : AD; }
 basicType:		INT								{ $$ = L; }
 			| REAL								{ $$ = D; }
 			;
-statement:		assignment SEMICOLON
+statement:		assignment SEMICOLON				
 			| block SEMICOLON 
 			| test SEMICOLON 
 			| loop SEMICOLON 
 			| input SEMICOLON 
 			| output SEMICOLON 
 			| procedure SEMICOLON 
-			| error SEMICOLON
+			| error SEMICOLON						{ /* empty rule for error production */ }
 			;
-assignment:		variable ASSIGN expression					{}
-			| variable LBRACE expression RBRACE ASSIGN expression		{}
+assignment:		variable ASSIGN expression					
+			| variable LBRACE expression RBRACE ASSIGN expression
 			;
-expression:		variable							{}
-			| variable LBRACE expression RBRACE 				{  }
+expression:		variable							{ symrec *variable_table_ptr = $1;
+											  switch(variable_table_ptr->var_info.type) {
+												case L: $$ = variable_table_ptr->value.long_val;
+												case D: $$ = variable_table_ptr->value.double_val;
+											  }
+											}
+			| variable LBRACE expression RBRACE 				// semantic use?
 			| INTNUMBER							{ $$ = $1; }
 			| REALNUMBER							{ $$ = $1; }
 			| expression DIV expression					{ $$ = (div($1,$3)).quot; } 
-			| expression MOD expression					
+			| expression MOD expression					{ $$ = (div($1,$3)).rem; }
 			| expression DIVIDE expression					{ $$ = $1 / $3; }
 			| expression MULT expression					{ $$ = $1 * $3; }
 			| expression PLUS expression					{ $$ = $1 + $3; }
 			| expression MINUS expression					{ $$ = $1 - $3; }
-			| LPAREN expression RPAREN
-			| INT LPAREN expression RPAREN
-			| PLUS expression %prec USIGN
-			| MINUS expression %prec USIGN	{/*printf("uminus rule triggered at %d.\n", yylineno);*/}
+			| LPAREN expression RPAREN					{ $$ = $2; }
+			| INT LPAREN expression RPAREN					{ $$ = round($3); }
+			| PLUS expression %prec USIGN					{ $$ = $2; }
+			| MINUS expression %prec USIGN					{ $$ = -$2; }
 			;
-comparisonOp:		EQ				{}
-			| NEQ				{}
-			| LT				{}
-			| GT				{}
-			| LTE				{}
-			| GTE				{}
+comparisonOp:		EQ								{ $$ = "if_icmpeq"; }
+			| NEQ								{ $$ = "if_icmpne"; }
+			| LT								{ $$ = "if_icmplt"; }
+			| GT								{ $$ = "if_icmpgt"; }
+			| LTE								{ $$ = "if_icmple"; }
+			| GTE								{ $$ = "if_icmpge"; }
 			;
 comparisonExpr:		expression comparisonOp expression	{return 1; /* TODO */}
 			| comparisonExpr AND comparisonExpr
@@ -361,23 +361,23 @@ reduceOp:		MINUS				{}
 			;
 */
 input:			READ LPAREN IDENTIFIER RPAREN {
-				symrec* read_symbol_info = getsym($3->name);
-				struct var_info readId = read_symbol_info->var_info;
+				symrec* read_symbol = get_symbol($3->symbol_name);
+				struct var_info read_symbol_info = read_symbol->var_info;
 				stack(+2);
-				if(readId.type == D) { 	
+				if(read_symbol_info.type == D) { 	
 					$$ = concat(
 					strdup("  invokestatic Keyboard/readDouble()D\n"),
-					strdup(store($3->name)));
-				} else if(readId.type == L) {
+					strdup(store($3->symbol_name)));
+				} else if(read_symbol_info.type == L) {
 					$$ = concat(
 					strdup("  invokestatic Keyboard/readInt()I\n  i2l\n"),
-					strdup(store($3->name)));
+					strdup(store($3->symbol_name)));
 				} else {
-					yyerror("cannot read arrays\n");exit(1);
+					yyerror("cannot read arrays\n");
+					exit(1);
 				}
 				stack(-2);
 			}
-
 			;
 
 //should output have an expression?
