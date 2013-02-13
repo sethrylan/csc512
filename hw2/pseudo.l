@@ -82,7 +82,7 @@ MAX			{return MAX;}
 			 return IDENTIFIER;
 			}
 
-{intnum}		{yylval.int_val = atoi(yytext); 
+{intnum}		{yylval.long_val = atol(yytext); 
 			 return (INTNUMBER);
 // TODO: use resWord() and symLookup to return symbol table index
 			}

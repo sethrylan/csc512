@@ -45,7 +45,7 @@ testcalc: calc calctestfiles
 		diff $$expected_file $$output_file > /dev/null || (echo -ne "\r  ....FAILED. See $$testname.output for failures." >&2 && false); \
 		rc=`expr $$rc + $$?`; count=`expr $$count + 1`; \
 	done; \
-	echo; echo " Tests run: $$count,  Failures: $$rc\n\n"
+	echo; echo " Tests run: $$count,  Failures: $$rc"; echo
 
 calctestfiles: $(CALCTESTFILES)
 
@@ -87,6 +87,6 @@ testpseudoparse: all pseudoparsetestfiles
 		diff $$expected_file $$output_file > /dev/null || (echo -ne "\r  ....FAILED. See $$testname.output for failures." >&2 && false);  \
 		rc=`expr $$rc + $$?`; count=`expr $$count + 1`;\
 	done; \
-	echo; echo " Tests run: $$count,  Failures: $$rc\n\n"
+	echo; echo " Tests run: $$count,  Failures: $$rc"; echo
 
 pseudoparsetestfiles: $(PSEUDOPARSETESTFILES)

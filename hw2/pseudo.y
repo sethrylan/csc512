@@ -2,6 +2,7 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>
+	#include <math.h>
 
 	extern FILE *yyin;
 	extern FILE *yyout;
@@ -52,11 +53,9 @@
 
 	typedef struct Scope {
 		//syment sym_table;
-		struct symrec* table;
+		struct symrec* sym_table;
 		struct Scope* parent;
 	} *Scope;
-
-
 
 
 	void beginScope();
@@ -68,9 +67,8 @@
 	/*
 	 * return metadata for symbol s like location, type and so on
 	 */
-	struct var_info getsym(char *s) {
+	symrec* getsym(char *symbol_name) {
 		
-
 	}
 
 	/*
@@ -113,20 +111,18 @@
 		return s;
 	}
 
-
-	char *load(char *sym) {
-		var_info info = getsym(sym);
-  
-		switch(info.type) {
+	char *load(char *symbol_name) {
+		symrec* symbol_info = getsym(symbol_name);
+		switch(symbol_info->var_info.type) {
 			case L:
-				sprintf(t, "  lload %d ; load long %s \n", info.offset, sym);
+				sprintf(t, "  lload %d ; load long %s \n", symbol_info->var_info.offset, symbol_name);
 				break;
 			case D:
-				sprintf(t, "  dload %d ;load double %s \n", info.offset, sym);
+				sprintf(t, "  dload %d ;load double %s \n", symbol_info->var_info.offset, symbol_name);
 				break;
 			case AL:
 			case AD:
-				sprintf(t, "  aload %d ; load array %s \n",info.offset, sym);
+				sprintf(t, "  aload %d ; load array %s \n", symbol_info->var_info.offset, symbol_name);
 				break;
 			default:
 				printf("error loading symbol");
@@ -138,20 +134,19 @@
 	/*
 	 * return string "dstore <i>" for i-th variable "sym" in symbol table
 	 */
-	char *store(char *sym) {
-		var_info info;
-		info = getsym(sym);
-
-		switch(info.type) {
+	char *store(char *symbol_name) {
+		symrec* symbol_info = getsym(symbol_name);
+		symbol_info = getsym(symbol_name);
+		switch(symbol_info->var_info.type) {
 			case L:
-				sprintf(t,"  lstore %d ;  storing %s var \n",info.offset,sym);
+				sprintf(t, "  lstore %d ;  storing %s var \n", symbol_info->var_info.offset, symbol_name);
 				break;
 			case D:
-				sprintf(t,"  dstore %d ; storing %s var\n",info.offset,sym);
+				sprintf(t, "  dstore %d ; storing %s var\n", symbol_info->var_info.offset, symbol_name);
 				break;
 			case AL:
 			case AD:
-				sprintf(t,"  astore %d; storing array %s\n",info.offset,sym);
+				sprintf(t, "  astore %d; storing array %s\n", symbol_info->var_info.offset, symbol_name);
 				break;
 		}
 		return strdup(t);
@@ -166,9 +161,11 @@
 
 %union {
 	char *str_ptr;
-	int int_val;
+	long long_val;
 	double double_val;
 	var_info var_info;
+	var_type var_type;
+	symrec *table_ptr;
 	/*Feel free to add any other data types*/
 }
 
@@ -190,27 +187,27 @@
 %token END_OF_FILE 
 
 // type information for terminal tokens: identifiers and numbers
-%token<str_ptr> IDENTIFIER 
+%token<table_ptr> IDENTIFIER    // TODO type should be of symbol
 %token<double_val> REALNUMBER
-%token<int_val> INTNUMBER
+%token<long_val> INTNUMBER
 
 // type information for nonterminals
 %type<str_ptr> program
-%type<var_info> variable
+%type<table_ptr> variable
 %type<str_ptr> block
 %type<str_ptr> declarations
 //varListGroup
 //varList
 //variableGroup
-%type<var_type_val> type
-%type<var_type_val> basicType
-%type<var_type_val> arrayType
+%type<var_type> type
+%type<var_type> basicType
+%type<var_type> arrayType
 //statement
 %type<str_ptr> statementGroup
 %type<str_ptr> assignment
 %type<double_val> expression
 %type<str_ptr> comparisonOp
-%type<str_ptr> comparisonExpr
+%type<str_ptr> comparisonExpr  // maybe an long_val
 %type<str_ptr> test
 %type<str_ptr> loop
 %type<str_ptr> whileLoop
@@ -252,7 +249,7 @@ program: 		block END_OF_FILE  {
 				exit(0);
 			}
 			;
-variable:		IDENTIFIER					{ $$ = getsym($1); }
+variable:		IDENTIFIER					{ $$ = getsym($1->name); }
 			;
 block:			declarations BEGINSYM statementGroup END	{}
 			| BEGINSYM statementGroup END			{}
@@ -273,10 +270,10 @@ variableGroup:		variableGroup COMMA variable
 type:			basicType 
 			| arrayType
 			;
-arrayType:		basicType LBRACE expression RBRACE
+arrayType:		basicType LBRACE expression RBRACE				{ $$ = $1 == L ? AL : AD; }
 			;
-basicType:		INT								{}
-			| REAL								{}
+basicType:		INT								{ $$ = L; }
+			| REAL								{ $$ = D; }
 			;
 statement:		assignment SEMICOLON
 			| block SEMICOLON 
@@ -291,15 +288,15 @@ assignment:		variable ASSIGN expression					{}
 			| variable LBRACE expression RBRACE ASSIGN expression		{}
 			;
 expression:		variable							{}
-			| variable LBRACE expression RBRACE 
-			| INTNUMBER					{ }
-			| REALNUMBER
-			| expression DIV expression
-			| expression MOD expression
-			| expression DIVIDE expression
-			| expression MULT expression
-			| expression PLUS expression	{/*printf("expr+expr rule triggered at %d.\n", yylineno);*/}
-			| expression MINUS expression	{/*printf("expr-expr rule triggered at %d.\n", yylineno);*/}
+			| variable LBRACE expression RBRACE 				{  }
+			| INTNUMBER							{ $$ = $1; }
+			| REALNUMBER							{ $$ = $1; }
+			| expression DIV expression					{ $$ = (div($1,$3)).quot; } 
+			| expression MOD expression					
+			| expression DIVIDE expression					{ $$ = $1 / $3; }
+			| expression MULT expression					{ $$ = $1 * $3; }
+			| expression PLUS expression					{ $$ = $1 + $3; }
+			| expression MINUS expression					{ $$ = $1 - $3; }
 			| LPAREN expression RPAREN
 			| INT LPAREN expression RPAREN
 			| PLUS expression %prec USIGN
@@ -324,24 +321,24 @@ loop:			whileLoop
 			| repeatLoop
 			| forLoop
 			;
-whileLoop:		WHILE comparisonExpr DO statementGroup ENDWHILE {
-				sprintf(go_l1, "  ifne Label%d\n", label);
-				sprintf(l1, "Label%d:\n", label++);
-				sprintf(goto_l2, "  goto Label%d\n", label);
-				sprintf(l2, "Label%d:\n", label++);
-				$$ = concat(
-				       concat(
-					 concat(
-					   concat(
-					     concat(
-					       strdup(goto_l2),
-						 strdup(l1)),
-					       $4),
-					     strdup(l2)),
-					   $2),
-				  strdup(go_l1));
-				stack(-1);
-			}
+whileLoop:		WHILE comparisonExpr DO statementGroup ENDWHILE 	{
+										sprintf(go_l1, "  ifne Label%d\n", label);
+										sprintf(l1, "Label%d:\n", label++);
+										sprintf(goto_l2, "  goto Label%d\n", label);
+										sprintf(l2, "Label%d:\n", label++);
+										$$ = concat(
+										       concat(
+											 concat(
+											   concat(
+											     concat(
+											       strdup(goto_l2),
+												 strdup(l1)),
+											       $4),
+											     strdup(l2)),
+											   $2),
+										  strdup(go_l1));
+										stack(-1);
+										}
 			;
 repeatLoop:		REPEAT statementGroup UNTIL comparisonExpr ENDREPEAT
 			;
@@ -364,16 +361,17 @@ reduceOp:		MINUS				{}
 			;
 */
 input:			READ LPAREN IDENTIFIER RPAREN {
-				struct var_info readId = getsym($3);
+				symrec* read_symbol_info = getsym($3->name);
+				struct var_info readId = read_symbol_info->var_info;
 				stack(+2);
 				if(readId.type == D) { 	
 					$$ = concat(
 					strdup("  invokestatic Keyboard/readDouble()D\n"),
-					strdup(store($3)));
+					strdup(store($3->name)));
 				} else if(readId.type == L) {
 					$$ = concat(
 					strdup("  invokestatic Keyboard/readInt()I\n  i2l\n"),
-					strdup(store($3)));
+					strdup(store($3->name)));
 				} else {
 					yyerror("cannot read arrays\n");exit(1);
 				}
@@ -388,15 +386,13 @@ output:			WRITE LPAREN expression RPAREN
 procedure:		PROC IDENTIFIER LPAREN parametersOption RPAREN block ENDPROC
 			| PARPROC IDENTIFIER LPAREN parametersOption RPAREN block ENDPARPROC
 			;
-//procName:		IDENTIFIER				{}
-//			;
 parameters:		parameter parameterGroup
 			;
 parametersOption:	parameters
 			|
 			;
 parameterGroup:		parameterGroup COMMA parameter
-			| 
+			| 					{ /* empty rule for typed nonterminal */ }
 			;
 parameter:		passBy variable COLON type
 			;
@@ -436,8 +432,8 @@ void use() {
 int main(int argc, char *argv[]) {
 	// much more than just return yyparse();
 	
-	return yyparse();
-/*
+//	return yyparse();
+
 	int result;
 	char *basename;
 	char *pos = NULL;
@@ -495,7 +491,7 @@ int main(int argc, char *argv[]) {
 	fprintf(yyout, "   ; done\n");
 	fprintf(yyout, "   return\n");
 	fprintf(yyout, ".end method\n");
-*/
+
 }
 
 /*
