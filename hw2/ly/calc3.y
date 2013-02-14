@@ -3,19 +3,25 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include "calc3.h"
+
 /* prototypes */
 nodeType *opr(int oper, int nops, ...);
 nodeType *id(int i);
 nodeType *con(int value);
 void freeNode(nodeType *p);
 void yyerror(char *s);
+
 int sym[26]; /* symbol table */
+int ex(nodeType *p);
 %}
+
+
 %union {
-int iValue; /* integer value */
-char sIndex; /* symbol table index */
-nodeType *nPtr; /* node pointer */
+	int iValue; /* integer value */
+	char sIndex; /* symbol table index */
+	nodeType *nPtr; /* node pointer */
 };
+
 %token <iValue> INTEGER
 %token <sIndex> VARIABLE
 %token WHILE IF PRINT
@@ -70,57 +76,58 @@ INTEGER { $$ = con($1); }
 %%
 
 nodeType *con(int value) {
-nodeType *p;
-/* allocate node */
-if ((p = malloc(sizeof(conNodeType))) == NULL)
-yyerror("out of memory");
-/* copy information */
-p->type = typeCon;
-p->con.value = value;
-return p;
+	nodeType *p;
+	/* allocate node */
+	if ((p = malloc(sizeof(conNodeType))) == NULL)
+		yyerror("out of memory");
+	/* copy information */
+	p->type = typeCon;
+	p->con.value = value;
+	return p;
 }
 nodeType *id(int i) {
-nodeType *p;
-/* allocate node */
-if ((p = malloc(sizeof(idNodeType))) == NULL)
-yyerror("out of memory");
-/* copy information */
-p->type = typeId;
-p->id.i = i;
-return p;
+	nodeType *p;
+	/* allocate node */
+	if ((p = malloc(sizeof(idNodeType))) == NULL)
+		yyerror("out of memory");
+	/* copy information */
+	p->type = typeId;
+	p->id.i = i;
+	return p;
 }
 nodeType *opr(int oper, int nops, ...) {
-va_list ap;
-nodeType *p;
-size_t size;
-int i;
-/* allocate node */
-size = sizeof(oprNodeType) + (nops - 1) * sizeof(nodeType*);
-if ((p = malloc(size)) == NULL)
-yyerror("out of memory");
-/* copy information */
-p->type = typeOpr;
-p->opr.oper = oper;
-p->opr.nops = nops;
-va_start(ap, nops);
-for (i = 0; i < nops; i++)
-p->opr.op[i] = va_arg(ap, nodeType*);
-va_end(ap);
-return p;
-}28
-void freeNode(nodeType *p) {
-int i;
-if (!p) return;
-if (p->type == typeOpr) {
-for (i = 0; i < p->opr.nops; i++)
-freeNode(p->opr.op[i]);
+	va_list ap;
+	nodeType *p;
+	size_t size;
+	int i;
+	/* allocate node */
+	size = sizeof(oprNodeType) + (nops - 1) * sizeof(nodeType*);
+	if ((p = malloc(size)) == NULL)
+		yyerror("out of memory");
+	/* copy information */
+	p->type = typeOpr;
+	p->opr.oper = oper;
+	p->opr.nops = nops;
+	va_start(ap, nops);
+	for (i = 0; i < nops; i++)
+		p->opr.op[i] = va_arg(ap, nodeType*);
+	va_end(ap);
+	return p;
 }
-free (p);
+
+void freeNode(nodeType *p) {
+	int i;
+	if (!p) return;
+	if (p->type == typeOpr) {
+		for (i = 0; i < p->opr.nops; i++)
+			freeNode(p->opr.op[i]);
+	}
+	free (p);
 }
 void yyerror(char *s) {
-fprintf(stdout, "%s\n", s);
+	fprintf(stdout, "%s\n", s);
 }
 int main(void) {
-yyparse();
-return 0;
+	yyparse();
+	return 0;
 }
