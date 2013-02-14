@@ -1,0 +1,65 @@
+	push(1);
+	push(1);
+	add();
+	push(1);
+	push(2);
+	sub();
+	push(1);
+	push(2);
+	mul();
+	push(2);
+	push(1);
+	div();
+	push(1);
+	a = pop();
+	push(2);
+	b = pop();
+	push(a);
+	push(b);
+	add();
+	push(3);
+	mul();
+	push(2);
+	a = pop();
+	push(a);
+	push(b);
+	EQ();
+	if (!pop())
+		goto L000;
+	push(a);
+	print();
+	goto	L001;
+L000:
+	push(b);
+	print();
+L001:
+	push(1);
+	a = pop();
+	push(5);
+	b = pop();
+L002:
+	push(a);
+	push(b);
+	NE();
+	if(!pop())
+		goto	L003;
+	push(a);
+	push(b);
+	EQ();
+	print();
+	push(a);
+	push(b);
+	GREATER();
+	print();
+	push(a);
+	push(b);
+	LESS();
+	print();
+	push(a);
+	print();
+	push(a);
+	push(1);
+	add();
+	a = pop();
+	goto	L002;
+L003:
