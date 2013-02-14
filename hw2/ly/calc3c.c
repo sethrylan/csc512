@@ -49,7 +49,7 @@ int ex(nodeType *p) {
             ex(p->opr.op[0]);
             printf("\tprint();\n");
             break;
-        case '=':       
+        case ASSIGN:       
             ex(p->opr.op[1]);
             printf("\t%s = pop();\n", p->opr.op[0]->id.symbol_name);
             break;

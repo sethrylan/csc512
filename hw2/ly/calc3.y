@@ -25,9 +25,12 @@
 %token <long_val> INTNUMBER
 %token <double_val> REALNUMBER
 %token <str_ptr> IDENTIFIER
+
+
+%token ASSIGN
 %token WHILE IF PRINT 
 
-
+%right ASSIGN
 %left GTE LTE EQ NEQ GT LT
 %left PLUS MINUS
 %left MULT DIVIDE
@@ -52,7 +55,7 @@ stmt:
           ';'                            { $$ = opr(';', 2, NULL, NULL); }
         | expr ';'                       { $$ = $1; }
         | PRINT expr ';'                 { $$ = opr(PRINT, 1, $2); }
-        | IDENTIFIER '=' expr ';'          { $$ = opr('=', 2, id($1), $3); }
+        | IDENTIFIER ASSIGN expr ';'          { $$ = opr(ASSIGN, 2, id($1), $3); }
         | WHILE '(' expr ')' stmt        { $$ = opr(WHILE, 2, $3, $5); }
         | IF '(' expr ')' stmt %prec IFX { $$ = opr(IF, 2, $3, $5); }
         | IF '(' expr ')' stmt ELSE stmt { $$ = opr(IF, 3, $3, $5, $7); }

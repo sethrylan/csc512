@@ -22,10 +22,11 @@ realnum	{digit}+(\.{digit}+)?
 %%
 
 
-[=();{}.]	{
+[();{}.]	{
 		return *yytext;
 		}
 
+":="			{return ASSIGN;}
 ">"			{return GT;}
 "<"			{return LT;}
 ">="			{return GTE;}
@@ -40,6 +41,7 @@ realnum	{digit}+(\.{digit}+)?
 "if"			{return IF;}
 "else"			{return ELSE;}
 "print"			{return PRINT;}
+
 
 {whitespace}		;  /* ignore whitespace */
 
