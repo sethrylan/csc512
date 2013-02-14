@@ -27,6 +27,9 @@ realnum	{digit}+(\.{digit}+)?
 		}
 
 ":="			{return ASSIGN;}
+
+"="			{return EQ;}
+"<>"			{return NEQ;}
 ">"			{return GT;}
 "<"			{return LT;}
 ">="			{return GTE;}
@@ -35,8 +38,7 @@ realnum	{digit}+(\.{digit}+)?
 "-"			{return MINUS;}
 "*"			{return MULT;}
 "/"			{return DIVIDE;}
-"=="			{return EQ;}
-"!="			{return NEQ;}
+
 "while"			{return WHILE;}
 "if"			{return IF;}
 "else"			{return ELSE;}
