@@ -2,11 +2,12 @@
 	#include <stdlib.h>
 	#include "calc3.h"
 	#include "y.tab.h"
+
 	void yyerror(char *);
 
-//	#define yyterminate() return END
+	// return END token on termination
+	#define yyterminate() return END
 %}
-
 
 %option	yylineno
 
@@ -21,10 +22,6 @@ realnum	{digit}+(\.{digit}+)?
 
 %%
 
-
-[{}.]		{
-		return *yytext;
-		}
 
 ":="			{return ASSIGN;}
 "BEGIN"			{return BEGINSYM;}
