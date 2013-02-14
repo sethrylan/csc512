@@ -13,7 +13,7 @@ int ex(nodeType *p) {
         printf("\tpush(%d);\n", p->con.value); 
         break;
     case typeId:        
-        printf("\tpush(%s);\n", p->id.symbol_name); 
+        printf("\tpush(%c);\n", p->id.symbol_name); 
         break;
     case typeOpr:
         switch(p->opr.oper) {
@@ -51,7 +51,7 @@ int ex(nodeType *p) {
             break;
         case '=':       
             ex(p->opr.op[1]);
-            printf("\t%s = pop();\n", p->opr.op[0]->id.symbol_name);
+            printf("\t%c = pop();\n", p->opr.op[0]->id.symbol_name);
             break;
         case UMINUS:
             ex(p->opr.op[0]);

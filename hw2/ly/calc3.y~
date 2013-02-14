@@ -116,7 +116,7 @@ nodeType *id(char* symbol_name) {
 
     /* copy information */
     p->type = typeId;
-    p->id.symbol_name = symbol_name;
+    p->id.i = symbol_name;
 
     return p;
 }
