@@ -1,0 +1,18 @@
+	push(1);
+	a = pop();
+	push(2);
+	b = pop();
+	push(a);
+	push(b);
+	EQ();
+	if (!pop())
+		goto L000;
+	push(a);
+	print();
+	goto	L001;
+L000:
+	push(b);
+	print();
+	push(a);
+	print();
+L001:

@@ -1,0 +1,30 @@
+	push(1);
+	a = pop();
+	push(5);
+	b = pop();
+L000:
+	push(a);
+	push(b);
+	NE();
+	if(!pop())
+		goto	L001;
+	push(a);
+	push(b);
+	EQ();
+	print();
+	push(a);
+	push(b);
+	GREATER();
+	print();
+	push(a);
+	push(b);
+	LESS();
+	print();
+	push(a);
+	print();
+	push(a);
+	push(1);
+	add();
+	a = pop();
+	goto	L000;
+L001:

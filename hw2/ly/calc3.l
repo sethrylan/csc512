@@ -27,6 +27,17 @@ realnum	{digit}+(\.{digit}+)?
 		}
 
 ":="			{return ASSIGN;}
+"BEGIN"			{return BEGINSYM;}
+"END"			{return END;}
+
+"WHILE"			{return WHILE;}
+"DO"			{return DO;}
+"ENDWHILE"		{return ENDWHILE;}
+"IF"			{return IF;}
+"THEN"			{return THEN;}
+"ELSE"			{return ELSE;}
+"ENDIF"			{return ENDIF;}
+"PRINT"			{return PRINT;}
 
 "="			{return EQ;}
 "<>"			{return NEQ;}
@@ -38,23 +49,21 @@ realnum	{digit}+(\.{digit}+)?
 "-"			{return MINUS;}
 "*"			{return MULT;}
 "/"			{return DIVIDE;}
-DIV			{return DIV;}
-MOD			{return MOD;}
-MIN			{return MIN;}
-MAX			{return MAX;}
+"DIV"			{return DIV;}
+"MOD"			{return MOD;}
+"MIN"			{return MIN;}
+"MAX"			{return MAX;}
 "("			{return LPAREN;}
 ")"			{return RPAREN;}
 "["			{return LBRACE;}
 "]"			{return RBRACE;}
 ":"			{return COLON;}
 ","			{return COMMA;}
+";"			{return SEMICOLON;}
 <<EOF>>			{return END_OF_FILE;}
 
-"while"			{return WHILE;}
-"if"			{return IF;}
-"else"			{return ELSE;}
-"print"			{return PRINT;}
-";"			{return SEMICOLON;}
+
+
 
 {whitespace}		;  /* ignore whitespace */
 
@@ -69,11 +78,9 @@ MAX			{return MAX;}
 			  return IDENTIFIER;
 			}
 
-
 {intnum}		{ yylval.long_val = atol(yytext); 
 			  return (INTNUMBER);
 			}
-
 
 {realnum}		{ sscanf(yytext, "%lf", &yylval.double_val); 
 			  return (REALNUMBER);

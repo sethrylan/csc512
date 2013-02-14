@@ -26,9 +26,11 @@
 %token <double_val> REALNUMBER
 %token <str_ptr> IDENTIFIER
 
-
 %token ASSIGN
-%token WHILE IF PRINT 
+%token BEGINSYM END
+%token WHILE DO ENDWHILE
+%token IF THEN ENDIF
+%token PRINT
 
 %token MIN MAX
 %token LPAREN RPAREN
@@ -49,39 +51,43 @@
 %nonassoc IFX
 %nonassoc ELSE
 
-%type <nPtr> stmt expr stmt_list
+%type <nPtr> stmt expr stmt_list assignment
 
 %%
 
 program:
-        function                { exit(0); }
-        ;
+	block END_OF_FILE			{ exit(0); }
+	;
 
-function:
-          function stmt         { ex($2); freeNode($2); }
-        | /* NULL */
-        ;
-
+block:	BEGINSYM stmt_list END			{ ex($2); freeNode($2); }
+	//| declarations BEGINSYM statementGroup END
+	;
+//function:	function stmt         { ex($2); freeNode($2); }
+//        |
+//        ;
 stmt:
-          SEMICOLON                            { $$ = opr(';', 2, NULL, NULL); }
-        | expr SEMICOLON                      { $$ = $1; }
-        | PRINT expr SEMICOLON                 { $$ = opr(PRINT, 1, $2); }
-        | IDENTIFIER ASSIGN expr SEMICOLON          { $$ = opr(ASSIGN, 2, id($1), $3); }
-        | WHILE LPAREN expr RPAREN stmt        { $$ = opr(WHILE, 2, $3, $5); }
-        | IF LPAREN expr RPAREN stmt %prec IFX { $$ = opr(IF, 2, $3, $5); }
-        | IF LPAREN expr RPAREN stmt ELSE stmt { $$ = opr(IF, 3, $3, $5, $7); }
-        | '{' stmt_list '}'              { $$ = $2; }
-        ;
+	SEMICOLON							{ $$ = opr(';', 2, NULL, NULL); }
+	| expr SEMICOLON						{ $$ = $1; }
+	| PRINT expr SEMICOLON						{ $$ = opr(PRINT, 1, $2); }
+	| assignment SEMICOLON						{ $$ = $1; }
+	| WHILE LPAREN expr RPAREN DO stmt_list ENDWHILE		{ $$ = opr(WHILE, 2, $3, $6); }
+	| IF LPAREN expr RPAREN THEN stmt_list ENDIF %prec IFX		{ $$ = opr(IF, 2, $3, $6); }
+	| IF LPAREN expr RPAREN THEN stmt_list ELSE stmt_list ENDIF	{ $$ = opr(IF, 3, $3, $6, $8); }
+	| '{' stmt_list '}'						{ $$ = $2; }
+	;
 
 stmt_list:
           stmt                  { $$ = $1; }
         | stmt_list stmt        { $$ = opr(';', 2, $1, $2); }
         ;
 
-expr:
-	INTNUMBER				{ $$ = con($1); }
-	| IDENTIFIER              { $$ = id($1); }
-        | MINUS expr %prec UMINUS { $$ = opr(UMINUS, 1, $2); }
+assignment:		IDENTIFIER ASSIGN expr					{ $$ = opr(ASSIGN, 2, id($1), $3); }
+			| IDENTIFIER LBRACE expr RBRACE ASSIGN expr		{ $$ = opr(ASSIGN, 2, id($1), $6); /* currently assigns as a non array type */ }
+			;
+expr:	INTNUMBER				{ $$ = con($1); }
+	| REALNUMBER				{ $$ = con($1); }
+	| IDENTIFIER				{ $$ = id($1); }
+	| MINUS expr %prec UMINUS { $$ = opr(UMINUS, 1, $2); }
 //	| FACT expr             { $$ = opr(FACT, 1, $2); }
 //	| LNTWO expr            { $$ = opr(LNTWO, 1, $2); }
 //	| expr GCD expr         { $$ = opr(GCD, 2, $1, $3); }

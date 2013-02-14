@@ -1,0 +1,12 @@
+BEGIN
+a:=1;
+b:=5;
+WHILE(a<>b)
+DO
+        PRINT (a=b);
+        PRINT (a>b);
+        PRINT (a<b);
+        PRINT a;
+        a:=a+1;
+ENDWHILE
+END
