@@ -1,29 +1,29 @@
 %{
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include "calc3.h"
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <stdarg.h>
+	#include "calc3.h"
 
-/* prototypes */
-nodeType *opr(int oper, int nops, ...);
-nodeType *id(char* symbol_name);
-nodeType *con(int value);
-void freeNode(nodeType *p);
-int ex(nodeType *p);
-int yylex(void);
-
-void yyerror(char *s);
-int sym[26];                    /* symbol table */
+	/* prototypes */
+	nodeType *opr(int oper, int nops, ...);
+	nodeType *id(char* symbol_name);
+	nodeType *con(int value);
+	void freeNode(nodeType *p);
+	int ex(nodeType *p);
+	int yylex(void);
+	void yyerror(char *s);
+	int sym[26];                    /* symbol table */
 %}
 
 %union {
 	long long_val;		/* integer value */
 	double double_val;
 	char* str_ptr;		/* symbol table index; aka, symbol name */
-    nodeType *nPtr;		/* node pointer */
+	nodeType *nPtr;		/* node pointer */
 };
 
-%token <long_val> INTEGER
+%token <long_val> INTNUMBER
+%token <double_val> REALNUMBER
 %token <str_ptr> IDENTIFIER
 %token WHILE IF PRINT 
 %nonassoc IFX
@@ -66,24 +66,24 @@ stmt_list:
         ;
 
 expr:
-          INTEGER               { $$ = con($1); }
-        | IDENTIFIER              { $$ = id($1); }
+	INTNUMBER				{ $$ = con($1); }
+	| IDENTIFIER              { $$ = id($1); }
         | '-' expr %prec UMINUS { $$ = opr(UMINUS, 1, $2); }
-        | FACT expr             { $$ = opr(FACT, 1, $2); }
-        | LNTWO expr            { $$ = opr(LNTWO, 1, $2); }
-        | expr GCD expr         { $$ = opr(GCD, 2, $1, $3); }
-        | expr '+' expr         { $$ = opr('+', 2, $1, $3); }
-        | expr '-' expr         { $$ = opr('-', 2, $1, $3); }
-        | expr '*' expr         { $$ = opr('*', 2, $1, $3); }
-        | expr '/' expr         { $$ = opr('/', 2, $1, $3); }
-        | expr '<' expr         { $$ = opr('<', 2, $1, $3); }
-        | expr '>' expr         { $$ = opr('>', 2, $1, $3); }
-        | expr GE expr          { $$ = opr(GE, 2, $1, $3); }
-        | expr LE expr          { $$ = opr(LE, 2, $1, $3); }
-        | expr NE expr          { $$ = opr(NE, 2, $1, $3); }
-        | expr EQ expr          { $$ = opr(EQ, 2, $1, $3); }
-        | '(' expr ')'          { $$ = $2; }
-        ;
+	| FACT expr             { $$ = opr(FACT, 1, $2); }
+	| LNTWO expr            { $$ = opr(LNTWO, 1, $2); }
+	| expr GCD expr         { $$ = opr(GCD, 2, $1, $3); }
+	| expr '+' expr         { $$ = opr('+', 2, $1, $3); }
+	| expr '-' expr         { $$ = opr('-', 2, $1, $3); }
+	| expr '*' expr         { $$ = opr('*', 2, $1, $3); }
+	| expr '/' expr         { $$ = opr('/', 2, $1, $3); }
+	| expr '<' expr         { $$ = opr('<', 2, $1, $3); }
+	| expr '>' expr         { $$ = opr('>', 2, $1, $3); }
+	| expr GE expr          { $$ = opr(GE, 2, $1, $3); }
+	| expr LE expr          { $$ = opr(LE, 2, $1, $3); }
+	| expr NE expr          { $$ = opr(NE, 2, $1, $3); }
+	| expr EQ expr          { $$ = opr(EQ, 2, $1, $3); }
+	| '(' expr ')'          { $$ = $2; }
+	;
 
 %%
 

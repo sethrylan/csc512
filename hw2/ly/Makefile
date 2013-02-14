@@ -14,4 +14,7 @@ test: c-backend
 	@./calc3c < input1 > output1	
 	@diff output1 expected1
 
+rmbakfiles:
+	@$(RM) -f ./*~
+
 all: c-backend	
