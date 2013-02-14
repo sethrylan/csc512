@@ -1,0 +1,19 @@
+1+1;
+1-2;
+1*2;
+2/1;
+a := 1;
+b := 2;
+(a+b)*3;
+a := 2;
+IF(a=b) PRINT a; ELSE PRINT b;
+
+a:=1;
+b:=5;
+WHILE(a<>b)  { 
+PRINT (a=b);
+PRINT (a>b);
+PRINT (a<b);
+PRINT a; 
+a:=a+1;
+} 

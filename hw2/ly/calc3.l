@@ -22,22 +22,24 @@ realnum	{digit}+(\.{digit}+)?
 %%
 
 
-[-()<>=+*/;{}.]	{
+[=();{}.]	{
 		return *yytext;
 		}
 
-">="            return GE;
-"<="            return LE;
-"=="            return EQ;
-"!="            return NE;
-"while"         return WHILE;
-"if"            return IF;
-"else"          return ELSE;
-"print"         return PRINT;
-"fact"          return FACT;
-"gcd"           return GCD;
-"lntwo"         return LNTWO;
-
+">"			{return GT;}
+"<"			{return LT;}
+">="			{return GTE;}
+"<="			{return LTE;}
+"+"			{return PLUS;}
+"-"			{return MINUS;}
+"*"			{return MULT;}
+"/"			{return DIVIDE;}
+"=="			{return EQ;}
+"!="			{return NEQ;}
+"while"			{return WHILE;}
+"if"			{return IF;}
+"else"			{return ELSE;}
+"print"			{return PRINT;}
 
 {whitespace}		;  /* ignore whitespace */
 
@@ -77,3 +79,4 @@ realnum	{digit}+(\.{digit}+)?
 int yywrap(void) {
 	return 1;
 }
+

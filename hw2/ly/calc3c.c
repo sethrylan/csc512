@@ -57,6 +57,7 @@ int ex(nodeType *p) {
             ex(p->opr.op[0]);
             printf("\tneg();\n");
             break;
+/*
 	case FACT:
   	    ex(p->opr.op[0]);
 	    printf("\tfact();\n");
@@ -65,6 +66,7 @@ int ex(nodeType *p) {
 	    ex(p->opr.op[0]);
 	    printf("\tlntwo();\n");
 	    break;
+*/
         default:
             ex(p->opr.op[0]);
             ex(p->opr.op[1]);
@@ -73,26 +75,28 @@ int ex(nodeType *p) {
 		return 0;
 	    }
             switch(p->opr.oper) {
-	    case GCD:  
+		/*
+		case GCD:  
 		printf("\tgcd();\n");
 		break;
-            case '+':   printf("\tadd();\n"); break;
-            case '-':   printf("\tsub();\n"); break; 
-            case '*':   printf("\tmul();\n"); break;
-            case '/':   printf("\tdiv();\n"); break;
-            case '<':
+		*/
+            case PLUS:   printf("\tadd();\n"); break;
+            case MINUS:   printf("\tsub();\n"); break; 
+            case MULT:   printf("\tmul();\n"); break;
+            case DIVIDE:   printf("\tdiv();\n"); break;
+            case LT:
 		printf("\tLESS();\n"); 
 		return 0;
-            case '>':  
+            case GT:  
 		printf("\tGREATER();\n"); 
 		return 0;
-            case GE:
+            case GTE:
 		printf("\tGE();\n"); 
 		return 0;
-            case LE: 
+            case LTE: 
 		printf("\tLE();\n"); 
 		return 0;
-            case NE:    
+            case NEQ:    
 		printf("\tNE();\n"); 
 		return 0;
             case EQ:    
