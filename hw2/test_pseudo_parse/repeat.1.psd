@@ -1,0 +1,8 @@
+VAR a,b:INT;
+BEGIN
+b:=10;
+REPEAT
+	a:=1;
+	REPEAT a:=a; UNTIL a<>10 ENDREPEAT;
+UNTIL a<>b ENDREPEAT;
+END

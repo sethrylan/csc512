@@ -1,0 +1,12 @@
+VAR a,b:REAL;
+BEGIN
+READ(a);
+IF a > 0 THEN
+  a:=-1.0+2.0*a;
+  b := 1;
+  WHILE b < 10 DO
+    WRITE(b);
+    b := b + 1;
+  ENDWHILE;
+ENDIF;
+END

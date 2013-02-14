@@ -1,4 +1,4 @@
-VAR a,b,c:INT;
+VAR a,b,c:INT;thx:INT[1138];
 BEGIN
 c:=thx[1138]*INT(10);
 a:=-1.0+0.20/0.1;

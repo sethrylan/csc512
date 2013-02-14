@@ -1,4 +1,5 @@
-VAR BEGIN
+VAR a,b:INT;
+BEGIN
 IF 	b
 	>
 	1

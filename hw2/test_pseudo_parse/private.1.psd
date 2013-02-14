@@ -1,0 +1,6 @@
+VAR a,b:REAL;
+BEGIN
+a:=-1.0+0.20;
+b:=2;
+IF b>1 THEN WRITE(b); ENDIF;
+END

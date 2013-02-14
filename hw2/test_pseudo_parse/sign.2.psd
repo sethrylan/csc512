@@ -1,4 +1,4 @@
-VAR a:INT;
+VAR a,i:INT;
 BEGIN
 	a:=iiii*iiiiiii*-1;
 	i:=-1*-1;

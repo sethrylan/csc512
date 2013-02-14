@@ -1,8 +1,8 @@
-VAR a:INT;
+VAR a,b,c:INT;
 BEGIN
 WHILE a=b DO
 	a:=c;
-	WHILE A=A DO
+	WHILE a=a DO
 	ENDWHILE;
 ENDWHILE;
 END

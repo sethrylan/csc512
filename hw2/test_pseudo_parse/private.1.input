@@ -1,6 +1,0 @@
-VAR a,b:REAL;
-BEGIN
-a:=-1.0+0.20;
-IF b>1 THEN WRITE(PRIVATE); ENDIF;
-a:=110;
-END

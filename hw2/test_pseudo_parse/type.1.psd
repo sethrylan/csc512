@@ -1,0 +1,13 @@
+VAR fake,a,b:INT[20]; c:INT; def:REAL[123.456789]; zzz:REAL;
+BEGIN
+	fake[10] := INT(0);
+	z := -INT(0);
+	z := -INT(0) - -10.0;
+	c := INT(12.0);
+	c := INT(-12.0);
+	c := INT(12.12);
+	c := INT(-12.12);
+	c := INT(0.12);
+	c := INT(-0.12);
+END
+

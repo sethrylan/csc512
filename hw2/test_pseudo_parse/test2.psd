@@ -1,0 +1,23 @@
+VAR a:INT;
+BEGIN
+	a:=10;
+	VAR a:REAL;
+	BEGIN
+		a:=10.5;
+		WRITE(a);
+	END
+	;
+	VAR a:INT;
+	BEGIN
+		a:=20;
+		WRITE(a);
+	END
+	;
+	VAR b:INT;
+	BEGIN
+		b:=5;
+		WRITE(b);
+		WRITE(a);
+	END;
+	WRITE(a);
+END
