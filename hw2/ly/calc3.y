@@ -27,7 +27,7 @@
 %token <str_ptr> IDENTIFIER
 
 
-%token ASSIGN
+%token ASSIGN SEMICOLON
 %token WHILE IF PRINT 
 
 %right ASSIGN
@@ -52,10 +52,10 @@ function:
         ;
 
 stmt:
-          ';'                            { $$ = opr(';', 2, NULL, NULL); }
-        | expr ';'                       { $$ = $1; }
-        | PRINT expr ';'                 { $$ = opr(PRINT, 1, $2); }
-        | IDENTIFIER ASSIGN expr ';'          { $$ = opr(ASSIGN, 2, id($1), $3); }
+          SEMICOLON                            { $$ = opr(';', 2, NULL, NULL); }
+        | expr SEMICOLON                      { $$ = $1; }
+        | PRINT expr SEMICOLON                 { $$ = opr(PRINT, 1, $2); }
+        | IDENTIFIER ASSIGN expr SEMICOLON          { $$ = opr(ASSIGN, 2, id($1), $3); }
         | WHILE '(' expr ')' stmt        { $$ = opr(WHILE, 2, $3, $5); }
         | IF '(' expr ')' stmt %prec IFX { $$ = opr(IF, 2, $3, $5); }
         | IF '(' expr ')' stmt ELSE stmt { $$ = opr(IF, 3, $3, $5, $7); }

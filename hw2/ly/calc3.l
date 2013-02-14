@@ -22,7 +22,7 @@ realnum	{digit}+(\.{digit}+)?
 %%
 
 
-[();{}.]	{
+[(){}.]	{
 		return *yytext;
 		}
 
@@ -41,7 +41,7 @@ realnum	{digit}+(\.{digit}+)?
 "if"			{return IF;}
 "else"			{return ELSE;}
 "print"			{return PRINT;}
-
+";"			{return SEMICOLON;}
 
 {whitespace}		;  /* ignore whitespace */
 
