@@ -31,8 +31,8 @@ clean:
 	@$(RM) -f *.yy.c 
 	@$(RM) -f *.tab.* 
 	@$(RM) -f *.output
-	@$(RM) -f $(CALCTESTDIR)/*.output 
-	@$(RM) -f $(PSEUDOPARSETESTDIR)/*.output
+	@$(RM) -f $(CALCTESTDIR)/*.output
+	@$(RM) -f $(PSEUDOPARSETESTDIR)/*.output $(PSEUDOPARSETESTDIR)/*.jas
 
 testcalc: calc calctestfiles
 	-@rc=0; count=0; \
@@ -84,7 +84,7 @@ testpseudoparse: all pseudoparsetestfiles
 		output_file=$(PSEUDOPARSETESTDIR)/$$testname.output; \
 		expected_file=$(PSEUDOPARSETESTDIR)/$$testname.expected; \
 		echo " TESTING $$testname"; \
-		./pseudo < $$input_file 2> $$output_file; \
+		./pseudo $$input_file 2> $$output_file; \
 		diff $$expected_file $$output_file > /dev/null || (echo -ne "\r  ....FAILED. See $$testname.output for failures." >&2 && false);  \
 		rc=`expr $$rc + $$?`; count=`expr $$count + 1`;\
 	done; \
