@@ -1,9 +1,10 @@
 CFLAGS= -Wall -ggdb --pedantic
 PROJDIRS := .
-PSEUDOPARSETESTDIR := ./test_pseudo_parse
-PSEUDOPARSETESTFILES := $(shell find $(PSEUDOPARSETESTDIR) -type f -name "*.input")
-CALCTESTDIR := ./test_calc
-CALCTESTFILES := $(shell find $(CALCTESTDIR) -type f -name "*.input")
+TESTDIR := ./test
+PSEUDOPARSETESTDIR := $(TESTDIR)/pseudo_parse
+PSEUDOPARSETESTFILES := $(shell find $(PSEUDOPARSETESTDIR) -type f -name "*.psd")
+CALCTESTDIR := $(TESTDIR)/calc
+CALCTESTFILES := $(shell find $(CALCTESTDIR) -type f -name "*.psd")
 JASMIN_DIR := ./jasmin_files
 
 all: calc pseudo
@@ -37,7 +38,7 @@ testcalc: calc calctestfiles
 	-@rc=0; count=0; \
 	echo "======Testing calc======"; \
 	for input_file in $(CALCTESTFILES); do \
-		testname=`basename $$input_file .input`; \
+		testname=`basename $$input_file .psd`; \
 		output_file=$(CALCTESTDIR)/$$testname.output; \
 		expected_file=$(CALCTESTDIR)/$$testname.expected; \
 		echo " TESTING $$testname"; \
@@ -79,7 +80,7 @@ testpseudoparse: all pseudoparsetestfiles
 	-@rc=0; count=0; \
         echo "======Testing pseudo parse syntax======"; \
 	for input_file in $(PSEUDOPARSETESTFILES); do \
-		testname=`basename $$input_file .input`; \
+		testname=`basename $$input_file .psd`; \
 		output_file=$(PSEUDOPARSETESTDIR)/$$testname.output; \
 		expected_file=$(PSEUDOPARSETESTDIR)/$$testname.expected; \
 		echo " TESTING $$testname"; \
