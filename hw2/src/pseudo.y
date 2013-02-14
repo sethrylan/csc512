@@ -63,6 +63,30 @@
 		}
 	}
 
+	// TODO: test in getsym
+	/*
+	static int btreesearch(char *symbol_name, symrec **symbol_table, int ntab) {
+		int i, n, m, cmp;
+		if(s == nil)
+			return -1;
+		n = ntab;
+		i = 0;
+		while(n) {
+			m = n/2;
+			cmp = strcasecmp(symbol_name, symbol_table[i+m]);
+			if(cmp == 0)
+				return i+m;
+			if(cmp < 0 || m == 0)
+				n = m;
+			else {
+				i += m;
+				n = n-m;
+			}
+		}
+		return -1;
+	}
+	*/
+
 	/*
 	typedef struct scope {
 		//syment sym_table;
@@ -272,9 +296,16 @@
 
 
 program: 		block END_OF_FILE  {
-				//fprintf(yyout, "  .limit stack %d ; so many items can be pushed\n", maxstacksize);
-				//fprintf(yyout, "  .limit locals %d ; so many variables exist (doubles need 2 items)\n", maxsym + 1);
-				//fprintf(yyout, "%s", $$);
+				//FILE *pFile = fopen("pseudo.output","w");
+				//.source MyClass.j
+				//.class  public MyClass
+				//.super  java/lang/Object
+
+				//fprintf(pFile, "  .limit stack %d ; so many items can be pushed\n", maxstacksize);
+				//fprintf(pFile, "  .limit locals %d ; so many variables exist (doubles need 2 items)\n", maxsym + 1);
+				//fprintf(pFile, "%s", $$);
+
+				//fclose(pFile);
 				exit(0);
 			}
 			;
@@ -456,37 +487,34 @@ void use() {
 int main(int argc, char *argv[]) {
 	// much more than just return yyparse();
 	
-	return yyparse();
+//	return yyparse();
 
-/*
 	int result;
 	char *basename;
 	char *pos = NULL;
 
-	if (argc > 2) {
+	if (argc != 2) {
 		use();
 	}
 
 	if (argc == 2) {
+		//fprintf(stderr, "test\n");
 		basename = strdup(argv[1]);
-		pos = (char *) rindex(basename, '.');
+		pos = (char *)rindex(basename, '.');
 		if (pos) {
 			*pos = '\0';
 		} else {
 			fprintf(stderr, "no file extension found\n");
 			use();
 		}
-
-		if ((yyin = (FILE *) fopen(argv[1], "r")) == NULL) {
+		if ((yyin = (FILE *)fopen(argv[1], "r")) == NULL) {
 			fprintf(stderr, "cannot open input file %s\n", argv[1]);
 			use();
 		}
-
-		if ((yyout = (FILE *) fopen(strcat(basename, ".jas"), "w")) == NULL) {
+		if ((yyout = (FILE *)fopen(strcat(basename, ".jas"), "w")) == NULL) {
 			fprintf(stderr, "cannot open output file %s\n", basename);
 			use();
 		}
-
 		*pos = '\0';
 	} else {
 		basename = strdup("main");
@@ -510,14 +538,13 @@ int main(int argc, char *argv[]) {
 	fprintf(yyout, ";\n");
 	fprintf(yyout, ".method public static main([Ljava/lang/String;)V\n");
 
-	result = (int) yyparse();
+	result = (int)yyparse();
 
 	fprintf(yyout, "\n");
 	fprintf(yyout, "   ; done\n");
 	fprintf(yyout, "   return\n");
 	fprintf(yyout, ".end method\n");
 
-*/
 }
 
 /*
