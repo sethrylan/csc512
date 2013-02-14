@@ -22,7 +22,7 @@ realnum	{digit}+(\.{digit}+)?
 %%
 
 
-[(){}.]	{
+[{}.]		{
 		return *yytext;
 		}
 
@@ -38,6 +38,17 @@ realnum	{digit}+(\.{digit}+)?
 "-"			{return MINUS;}
 "*"			{return MULT;}
 "/"			{return DIVIDE;}
+DIV			{return DIV;}
+MOD			{return MOD;}
+MIN			{return MIN;}
+MAX			{return MAX;}
+"("			{return LPAREN;}
+")"			{return RPAREN;}
+"["			{return LBRACE;}
+"]"			{return RBRACE;}
+":"			{return COLON;}
+","			{return COMMA;}
+<<EOF>>			{return END_OF_FILE;}
 
 "while"			{return WHILE;}
 "if"			{return IF;}

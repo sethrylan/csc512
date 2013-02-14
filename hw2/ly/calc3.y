@@ -27,13 +27,24 @@
 %token <str_ptr> IDENTIFIER
 
 
-%token ASSIGN SEMICOLON
+%token ASSIGN
 %token WHILE IF PRINT 
 
+%token MIN MAX
+%token LPAREN RPAREN
+%token LBRACE RBRACE
+%token COLON COMMA SEMICOLON
+%token END_OF_FILE
+
+
 %right ASSIGN
+//%left AND
+//%left OR
+//%left NOT
 %left GTE LTE EQ NEQ GT LT
 %left PLUS MINUS
 %left MULT DIVIDE
+%left DIV MOD
 %nonassoc UMINUS
 %nonassoc IFX
 %nonassoc ELSE
@@ -56,9 +67,9 @@ stmt:
         | expr SEMICOLON                      { $$ = $1; }
         | PRINT expr SEMICOLON                 { $$ = opr(PRINT, 1, $2); }
         | IDENTIFIER ASSIGN expr SEMICOLON          { $$ = opr(ASSIGN, 2, id($1), $3); }
-        | WHILE '(' expr ')' stmt        { $$ = opr(WHILE, 2, $3, $5); }
-        | IF '(' expr ')' stmt %prec IFX { $$ = opr(IF, 2, $3, $5); }
-        | IF '(' expr ')' stmt ELSE stmt { $$ = opr(IF, 3, $3, $5, $7); }
+        | WHILE LPAREN expr RPAREN stmt        { $$ = opr(WHILE, 2, $3, $5); }
+        | IF LPAREN expr RPAREN stmt %prec IFX { $$ = opr(IF, 2, $3, $5); }
+        | IF LPAREN expr RPAREN stmt ELSE stmt { $$ = opr(IF, 3, $3, $5, $7); }
         | '{' stmt_list '}'              { $$ = $2; }
         ;
 
@@ -84,7 +95,7 @@ expr:
 	| expr LTE expr          { $$ = opr(LTE, 2, $1, $3); }
 	| expr NEQ expr          { $$ = opr(NEQ, 2, $1, $3); }
 	| expr EQ expr          { $$ = opr(EQ, 2, $1, $3); }
-	| '(' expr ')'          { $$ = $2; }
+	| LPAREN expr RPAREN          { $$ = $2; }
 	;
 
 %%
