@@ -1,12 +1,11 @@
+VAR a,b:INT;
 BEGIN
 a:=1;
 b:=5;
-WHILE(a<>b)
+WHILE a<>b
 DO
-	WRITE (a=b);
-        WRITE (a>b);
-        WRITE (a<b);
-        WRITE (a);
+	WRITE (a);
+        WRITE (b);
         a:=a+1;
-ENDWHILE
+ENDWHILE;
 END

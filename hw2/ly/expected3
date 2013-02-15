@@ -9,18 +9,8 @@ L000:
 	if(!pop())
 		goto	L001;
 	push(a);
-	push(b);
-	EQ();
 	print();
-	push(a);
 	push(b);
-	GREATER();
-	print();
-	push(a);
-	push(b);
-	LESS();
-	print();
-	push(a);
 	print();
 	push(a);
 	push(1);

@@ -128,6 +128,7 @@ expression:		INTNUMBER									{ $$ = constant($1); }
 			| expression DIVIDE expression							{ $$ = operator(DIVIDE, 2, $1, $3); }
 			| LPAREN expression RPAREN							{ $$ = $2; }
 			;
+
 comparisonOp:		EQ										{ $$ = EQ; }
 			| NEQ										{ $$ = NEQ; }
 			| LT										{ $$ = LT; }
@@ -135,6 +136,7 @@ comparisonOp:		EQ										{ $$ = EQ; }
 			| LTE										{ $$ = LTE; }
 			| GTE										{ $$ = GTE; }
 			;
+
 comparisonExpr:		expression comparisonOp expression						{ $$ = operator($2, 2, $1, $3); }
 			//| comparisonExpr AND comparisonExpr						{return 1; /* TODO */}
 			//| comparisonExpr OR comparisonExpr						{return 1; /* TODO */}

@@ -1,11 +1,12 @@
+VAR a,b:INT;
 BEGIN
 a := 1;
 b := 2;
-IF(a=b)
+IF a=b
 THEN
 	WRITE (a);
 ELSE
 	WRITE (b);
 	WRITE (a);
-ENDIF
+ENDIF;
 END
