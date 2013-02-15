@@ -1,0 +1,7 @@
+// source: http://www.ceng.metu.edu.tr/courses/ceng444/link/f3jasmintutorial.html
+VAR x:INT;
+BEGIN
+	READ(x);
+	x:=x+3;
+	WRITE(x);
+END

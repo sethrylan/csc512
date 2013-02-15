@@ -1,15 +1,46 @@
 CFLAGS= -Wall -ggdb --pedantic
 PROJDIRS := .
 TESTDIR := ./test
-PSEUDOPARSETESTDIR := $(TESTDIR)/pseudo_parse
+PSEUDOPARSETESTDIR := $(TESTDIR)/parse
 PSEUDOPARSETESTFILES := $(shell find $(PSEUDOPARSETESTDIR) -type f -name "*.psd")
 CALCTESTDIR := $(TESTDIR)/calc
 CALCTESTFILES := $(shell find $(CALCTESTDIR) -type f -name "*.psd")
 JASMIN_DIR := ./jasmin_files
+PSEUDOCTESTDIR := $(TESTDIR)/pseudoc
+PSEUDOCTESTFILES := $(shell find $(PSEUDOCTESTDIR) -type f -name "*.psd")
 
-all: calc pseudo
+all: calc pseudoc
 
-test: testcalc testpseudoparse
+test: testcalc testpseudoc
+
+testpseudoc2: pseudoc
+	@./pseudoc < $(PSEUDOCTESTDIR)/1.psd > $(PSEUDOCTESTDIR)/1.output	
+	diff $(PSEUDOCTESTDIR)/1.output $(PSEUDOCTESTDIR)/1.jas
+	@./pseudoc < $(PSEUDOCTESTDIR)/2.psd > $(PSEUDOCTESTDIR)/2.output	
+	diff $(PSEUDOCTESTDIR)/2.output $(PSEUDOCTESTDIR)/2.jas
+	@./pseudoc < $(PSEUDOCTESTDIR)/3.psd > $(PSEUDOCTESTDIR)/3.output	
+	diff $(PSEUDOCTESTDIR)/3.output $(PSEUDOCTESTDIR)/3.jas
+
+testpseudoc: pseudoc pseudoctestfiles
+	-@rc=0; count=0; \
+	echo "======Testing pseudoc======"; \
+	for input_file in $(PSEUDOCTESTFILES); do \
+		testname=`basename $$input_file .psd`; \
+		output_file=$(PSEUDOCTESTDIR)/$$testname.output; \
+		expected_file=$(PSEUDOCTESTDIR)/$$testname.jas; \
+		echo " TESTING $$testname"; \
+		./pseudoc < $$input_file > $$output_file 2>> $$output_file; \
+		diff $$expected_file $$output_file > /dev/null || (echo -ne "\r  ....FAILED. See $$testname.output for failures." >&2 && false); \
+		rc=`expr $$rc + $$?`; count=`expr $$count + 1`; \
+	done; \
+	echo; echo " Tests run: $$count,  Failures: $$rc"; echo
+
+pseudoctestfiles: $(PSEUDOCTESTFILES)
+
+
+pseudoc: pseudo.tab.h pseudo.yy.c
+	@gcc -c pseudo.tab.c pseudo.yy.c
+	@gcc pseudo.tab.o pseudo.yy.o pseudoc.c -o pseudoc
 
 pseudo: pseudo.tab.c pseudo.yy.c
 	@gcc -o pseudo pseudo.tab.c
@@ -27,11 +58,14 @@ calc: scan.c calc.c calc.h
 	@gcc scan.c calc.c -o calc -lfl
 
 clean:
-	@$(RM) -f calc pseudo
+	@$(RM) -f calc pseudo pseudoc
 	@$(RM) -f *.yy.c 
 	@$(RM) -f *.tab.* 
+	@$(RM) -f *.o
 	@$(RM) -f *.output
+	@$(RM) -f *.class
 	@$(RM) -f $(CALCTESTDIR)/*.output
+	@$(RM) -f $(PSEUDOCTESTDIR)/*.output
 	@$(RM) -f $(PSEUDOPARSETESTDIR)/*.output $(PSEUDOPARSETESTDIR)/*.jas
 
 testcalc: calc calctestfiles
@@ -76,7 +110,7 @@ rmjasmin:
 rmbakfiles:
 	@$(RM) -f ./*~
 	
-testpseudoparse: all pseudoparsetestfiles
+testpseudoparse: pseudo pseudoparsetestfiles
 	-@rc=0; count=0; \
         echo "======Testing pseudo parse syntax======"; \
 	for input_file in $(PSEUDOPARSETESTFILES); do \
@@ -91,3 +125,5 @@ testpseudoparse: all pseudoparsetestfiles
 	echo; echo " Tests run: $$count,  Failures: $$rc"; echo
 
 pseudoparsetestfiles: $(PSEUDOPARSETESTFILES)
+
+

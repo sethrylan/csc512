@@ -1,6 +1,15 @@
+/********************************************
+
+Java Bytecode: 		http://en.wikipedia.org/wiki/Java_bytecode_instruction_listings
+More Bytecode:		http://en.wikibooks.org/wiki/Java_Programming/Byte_Code
+
+Jasmin lesson:		http://www.cse.chalmers.se/edu/year/2012/course/TDA282/lect02-2x2.pdf
+Jasmin lesson (inc arrays): http://www.csc.villanova.edu/~tway/courses/csc8505/s2011/handouts/JVM%20and%20Jasmin.pdf
+Jasmin Compiler example:	http://files.dbruhn.de/compilerpraktikum/src/edu/kit/compilerpraktikum/bytecode/InsanelyFastByteCodeCreator.java
+********************************************/
 #include <stdio.h>
-#include "calc3.h"
-#include "y.tab.h"
+#include "pseudo.h"
+#include "pseudo.tab.h"			// bison -d generated header
 
 static int lbl;
 

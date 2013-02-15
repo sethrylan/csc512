@@ -1,0 +1,4 @@
+// source: http://en.wikipedia.org/wiki/Jasmin_(Java_assembler)#Example
+BEGIN
+WRITE(1138);
+END

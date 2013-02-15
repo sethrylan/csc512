@@ -1,0 +1,8 @@
+//source: http://www.cse.chalmers.se/edu/year/2012/course/TDA282/lect02-2x2.pdf
+VAR i:INT;
+BEGIN
+	WHILE i>6
+	DO
+		i--;
+	ENDWHILE;
+END

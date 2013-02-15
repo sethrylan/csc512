@@ -1,0 +1,13 @@
+lab1:
+iload 1
+bipush 6
+if icmpgt lab3
+iconst 0
+goto lab4
+lab3:
+iconst 1
+lab4:
+ifeq lab2
+iinc 1 (-1)
+goto lab1
+lab2:
