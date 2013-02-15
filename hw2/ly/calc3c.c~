@@ -30,7 +30,7 @@ int ex(node *p) {
 				case IF:
 					ex(p->oper.op[0]);
 					if (p->oper.nops > 2) {
-						/* IF ELSE */
+						/* if else */
 						printf("\tif (!pop())\n");
 						printf("\t\tgoto L%03d;\n", lbl1 = lbl++);
 						ex(p->oper.op[1]);
@@ -39,7 +39,7 @@ int ex(node *p) {
 						ex(p->oper.op[2]);
 						printf("L%03d:\n", lbl2);
 					} else {
-						/* IF */
+						/* if */
 						printf("\tif (!pop())\n");
 						printf("\tgoto\tL%03d;\n", lbl1 = lbl++);
 						ex(p->oper.op[1]);

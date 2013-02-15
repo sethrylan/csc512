@@ -4,13 +4,15 @@
 	#include <stdarg.h>
 	#include "calc3.h"
 
+	/***** Bison Debug Flag *****/
 	//#define YYDEBUG 1
 	//int yydebug = 1;
 
+	/***** Extern Variables *****/
 	extern int yylineno;
 	extern char *yytext;
 
-	/* prototypes */
+	/***** Prototypes *****/
 	node *operator(int operation, int nops, ...);
 	node *identifier(char* symbol_name);
 	node *constant(int value);
@@ -19,9 +21,12 @@
 	int yylex(void);
 	void yyerror(char *s);
 
-	int sym[26];			// symbol table
+	/***** Symbol Table *****/
+	int sym[26];
 %}
 
+
+/***** yylval Data Type *****/
 %union {
 	long long_val;		// integer value
 	double double_val;
@@ -29,27 +34,30 @@
 	node *nPtr;		// node pointer
 };
 
+
+/***** Typed Terminal Tokens *****/
 %token <long_val> INTNUMBER
 %token <double_val> REALNUMBER
 %token <str_ptr> IDENTIFIER
 
+/***** Non-Typed Terminal Tokens *****/
 %token ASSIGN
 %token BEGINSYM END
+%token VAR INT REAL
 %token WHILE DO ENDWHILE
 %token IF THEN ENDIF
-%token PRINT
-
+%token READ WRITE
 %token MIN MAX
 %token LPAREN RPAREN
 %token LBRACE RBRACE
 %token COLON COMMA SEMICOLON
 %token END_OF_FILE
 
-
+/***** Associativity and Precedence Rules *****/
 %right ASSIGN
-//%left AND
-//%left OR
-//%left NOT
+%left AND
+%left OR
+%left NOT
 %left GTE LTE EQ NEQ GT LT
 %left PLUS MINUS
 %left MULT DIVIDE
@@ -58,35 +66,53 @@
 %nonassoc IFX
 %nonassoc ELSE
 
-%type <nPtr> statement expression statementGroup assignment
+/***** Typed Non-Terminals *****/
+%type<nPtr> block statement expression statementGroup assignment
 
 %%
 
-program:		block END_OF_FILE			{ exit(0); }
-			;
+/***** Grammar Production Rules *****/
 
-block:			BEGINSYM statementGroup END			{ ex($2); freeNode($2); }
-			//| declarations BEGINSYM statementGroup END
+program:		block END_OF_FILE								{ exit(0); }
 			;
-
-statement:		expression SEMICOLON								{ $$ = $1; }
+block:			BEGINSYM statementGroup END							{ ex($2); freeNode($2); }
+			| declarations BEGINSYM statementGroup END					{ ex($3); freeNode($3); /* TODO: declarations */ }
+			;
+declarations:		VAR identifierListGroup						
+			;
+identifierListGroup:	identifierListGroup identifierList COLON type SEMICOLON
+			|
+			;
+identifierList: 	IDENTIFIER identifierGroup
+			;
+identifierGroup:	identifierGroup COMMA IDENTIFIER
+			|				
+			;
+type:			basicType 
+			| arrayType
+			;
+arrayType:		basicType LBRACE expression RBRACE						{ /*$$ = $1 == L ? AL : AD;*/ }
+			;
+basicType:		INT										{ /*$$ = L;*/ }
+			| REAL										{ /*$$ = D; */ }
+			;
+statement:		assignment SEMICOLON								{ $$ = $1; }
+			| block SEMICOLON								{ $$ = $1; }
+			| expression SEMICOLON								{ $$ = $1; }
 			//| SEMICOLON									{ $$ = operator(';', 2, NULL, NULL); }
-			| PRINT expression SEMICOLON							{ $$ = operator(PRINT, 1, $2); }
-			| assignment SEMICOLON								{ $$ = $1; }
+			| WRITE LPAREN expression RPAREN SEMICOLON					{ $$ = operator(WRITE, 1, $3); }
 			| WHILE LPAREN expression RPAREN DO statementGroup ENDWHILE			{ $$ = operator(WHILE, 2, $3, $6); }
 			| IF LPAREN expression RPAREN THEN statementGroup ENDIF %prec IFX		{ $$ = operator(IF, 2, $3, $6); }
 			| IF LPAREN expression RPAREN THEN statementGroup ELSE statementGroup ENDIF	{ $$ = operator(IF, 3, $3, $6, $8); }
 			//| '{' stmt_list '}'								{ $$ = $2; }
+			| error SEMICOLON								{ /* empty rule for error production */ }
 			;
-
 statementGroup:		statement									{ $$ = $1; }
 			| statementGroup statement							{ $$ = operator(SEMICOLON, 2, $1, $2); }
 			;
-
 assignment:		IDENTIFIER ASSIGN expression							{ $$ = operator(ASSIGN, 2, identifier($1), $3); }
 			| IDENTIFIER LBRACE expression RBRACE ASSIGN expression				{ $$ = operator(ASSIGN, 2, identifier($1), $6); /* TODO: currently assigns as a non array type */ }
 			;
-
 expression:		INTNUMBER									{ $$ = constant($1); }
 			| REALNUMBER									{ $$ = constant($1); }
 			| IDENTIFIER									{ $$ = identifier($1); }
@@ -109,9 +135,7 @@ expression:		INTNUMBER									{ $$ = constant($1); }
 
 %%
 
-/***********************************************
- * subroutines                                 *
- ***********************************************/
+/***** Subroutines *****/
 
 #define SIZEOF_NODETYPE ((char *)&p->constant - (char *)p)
 
@@ -172,9 +196,7 @@ void freeNode(node *p) {
 	free (p);
 }
 
-/*
- * yyerror - returns error msg "err" and line number
- */
+/***** yyerror: returns error message 'err' and line number *****/
 void yyerror(char *s) {
 	fprintf(stderr, "line %d: illegal character (%s)\n", yylineno, yytext);
 	//fprintf(stderr, "%s in line %d at %s\n", err, yylineno, yytext);

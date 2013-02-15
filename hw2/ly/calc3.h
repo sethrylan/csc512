@@ -2,17 +2,17 @@
 
 typedef enum { CONSTANT_TYPE, IDENTIFIER_TYPE, OPERATOR_TYPE } node_type_enum;
 
-/* constants */
+/***** Constant Type *****/
 typedef struct {
 	int value;			/* value of constant */
 } constant_node;
 
-/* identifiers */
+/***** Identifier Type *****/
 typedef struct {
 	char* symbol_name;		/* subscript to sym array; aka, name of symbol */
 } identifier_node;
 
-/* operators */
+/***** Operator Type *****/
 typedef struct {
 	int operation;			/* operator */
 	int nops;			/* number of operands */
@@ -22,8 +22,7 @@ typedef struct {
 typedef struct node_tag {
 	node_type_enum node_type;			/* type of node */
 
-	/* union must be last entry in nodeType */
-	/* because operNodeType may dynamically increase */
+	/***** union must be last entry in nodeType, because operator_node may dynamically increase *****/
 	union {
 		constant_node constant;			/* constants */
 		identifier_node identifier;		/* identifiers */

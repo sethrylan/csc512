@@ -5,13 +5,12 @@
 
 	void yyerror(char *);
 
-	// return END token on termination
-	#define yyterminate() return END
+	#define yyterminate() return END		// return END token on termination
 %}
 
 %option	yylineno
 
-/* defninitions: digit, letter, ... */
+/***** Regular Expression Definitions *****/
 digit		[0-9]
 letter		[a-zA-Z_$]
 whitespace	[ \t\n\r]
@@ -22,20 +21,29 @@ realnum	{digit}+(\.{digit}+)?
 
 %%
 
-
 ":="			{return ASSIGN;}
 "BEGIN"			{return BEGINSYM;}
 "END"			{return END;}
 
-"WHILE"			{return WHILE;}
-"DO"			{return DO;}
-"ENDWHILE"		{return ENDWHILE;}
+"VAR"			{return VAR;}
+"INT"			{return INT;}
+"REAL"			{return REAL;}
+
 "IF"			{return IF;}
 "THEN"			{return THEN;}
 "ELSE"			{return ELSE;}
 "ENDIF"			{return ENDIF;}
-"PRINT"			{return PRINT;}
 
+"WHILE"			{return WHILE;}
+"DO"			{return DO;}
+"ENDWHILE"		{return ENDWHILE;}
+
+"READ"			{return READ;}
+"WRITE"			{return WRITE;}
+
+"AND"			{return AND;}
+"OR"			{return OR;}
+"NOT"			{return NOT;}
 "="			{return EQ;}
 "<>"			{return NEQ;}
 ">"			{return GT;}
@@ -58,9 +66,6 @@ realnum	{digit}+(\.{digit}+)?
 ","			{return COMMA;}
 ";"			{return SEMICOLON;}
 <<EOF>>			{return END_OF_FILE;}
-
-
-
 
 {whitespace}		;  /* ignore whitespace */
 
@@ -93,7 +98,7 @@ realnum	{digit}+(\.{digit}+)?
 
 %%
 
-/* subroutines */
+/***** Subroutines *****/
 
 int yywrap(void) {
 	return 1;

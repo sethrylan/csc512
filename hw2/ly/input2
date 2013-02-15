@@ -3,9 +3,9 @@ a := 1;
 b := 2;
 IF(a=b)
 THEN
-	PRINT a;
+	WRITE (a);
 ELSE
-	PRINT b;
-	PRINT a;
+	WRITE (b);
+	WRITE (a);
 ENDIF
 END
