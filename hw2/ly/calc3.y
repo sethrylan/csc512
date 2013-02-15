@@ -67,7 +67,7 @@
 %nonassoc ELSE
 
 /***** Typed Non-Terminals *****/
-%type<nPtr> block statement expression comparisonExpr statementGroup assignment
+%type<nPtr> block statement expression test comparisonExpr statementGroup assignment
 %type<long_val> comparisonOp
 
 %%
@@ -92,22 +92,21 @@ identifierGroup:	identifierGroup COMMA IDENTIFIER
 type:			basicType 
 			| arrayType
 			;
-arrayType:		basicType LBRACE expression RBRACE						{ /*$$ = $1 == L ? AL : AD;*/ }
+arrayType:		basicType LBRACE expression RBRACE
 			;
-basicType:		INT										{ /*$$ = L;*/ }
-			| REAL										{ /*$$ = D; */ }
+basicType:		INT									
+			| REAL							
 			;
 statement:		assignment SEMICOLON								{ $$ = $1; }
 			| block SEMICOLON								{ $$ = $1; }
 			| expression SEMICOLON								{ $$ = $1; }
-			//| SEMICOLON									{ $$ = operator(';', 2, NULL, NULL); }
+			| test SEMICOLON								{ $$ = $1; }
 			| READ LPAREN expression RPAREN SEMICOLON					{ $$ = operator(READ, 1, $3); }
 			| WRITE LPAREN expression RPAREN SEMICOLON					{ $$ = operator(WRITE, 1, $3); }
 			| WHILE comparisonExpr DO statementGroup ENDWHILE SEMICOLON			{ $$ = operator(WHILE, 2, $2, $4); }
-			| IF comparisonExpr THEN statementGroup ENDIF SEMICOLON %prec IFX		{ $$ = operator(IF, 2, $2, $4); }
-			| IF comparisonExpr THEN statementGroup ELSE statementGroup ENDIF SEMICOLON	{ $$ = operator(IF, 3, $2, $4, $6); }
+			//| SEMICOLON									{ $$ = operator(';', 2, NULL, NULL); }
 			//| '{' stmt_list '}'								{ $$ = $2; }
-			| error SEMICOLON								{ /* empty rule for error production */ }
+			| error SEMICOLON								{ /***** empty rule for error production *****/ }
 			;
 statementGroup:		statement									{ $$ = $1; }
 			| statementGroup statement							{ $$ = operator(SEMICOLON, 2, $1, $2); }
@@ -119,14 +118,14 @@ expression:		INTNUMBER									{ $$ = constant($1); }
 			| REALNUMBER									{ $$ = constant($1); }
 			| IDENTIFIER									{ $$ = identifier($1); }
 			| MINUS expression %prec UMINUS							{ $$ = operator(UMINUS, 1, $2); }
-			//| FACT expr									{ $$ = operator(FACT, 1, $2); }
-			//| LNTWO expr									{ $$ = operator(LNTWO, 1, $2); }
-			//| expr GCD expr									{ $$ = operator(GCD, 2, $1, $3); }
 			| expression PLUS expression							{ $$ = operator(PLUS, 2, $1, $3); }
 			| expression MINUS expression							{ $$ = operator(MINUS, 2, $1, $3); }
 			| expression MULT expression							{ $$ = operator(MULT, 2, $1, $3); }
 			| expression DIVIDE expression							{ $$ = operator(DIVIDE, 2, $1, $3); }
 			| LPAREN expression RPAREN							{ $$ = $2; }
+			;
+test:			IF comparisonExpr THEN statementGroup ENDIF %prec IFX				{ $$ = operator(IF, 2, $2, $4); }
+			| IF comparisonExpr THEN statementGroup ELSE statementGroup ENDIF		{ $$ = operator(IF, 3, $2, $4, $6); }
 			;
 comparisonOp:		EQ										{ $$ = EQ; }
 			| NEQ										{ $$ = NEQ; }

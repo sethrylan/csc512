@@ -2,7 +2,7 @@ VAR a,b:REAL;
 BEGIN
 READ(a);
 IF a > 0 THEN
-  a:=-1.0+2.0*a;
+  a:=-1+2*a;
   b := 1;
   WHILE b < 10 DO
     WRITE(b);

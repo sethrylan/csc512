@@ -3,7 +3,7 @@ BEGIN
 	a:=10;
 	VAR a:REAL;
 	BEGIN
-		a:=10.5;
+		a:=10;
 		WRITE(a);
 	END
 	;

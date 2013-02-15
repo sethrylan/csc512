@@ -11,13 +11,13 @@
 %option	yylineno
 
 /***** Regular Expression Definitions *****/
-digit		[0-9]
-letter		[a-zA-Z_$]
-whitespace	[ \t\n\r]
-id		{letter}({letter}|{digit})*
-intnum		{digit}+
-/*realnum	{digit}+\.?{digit}* | {digit}*\.{digit}+*/
-realnum	{digit}+(\.{digit}+)?
+digit			[0-9]
+letter			[a-zA-Z_$]
+whitespace		[ \t\n\r]
+id			{letter}({letter}|{digit})*
+intnum			{digit}+
+/* realnum		{digit}+\.?{digit}* | {digit}*\.{digit}+ */
+realnum			{digit}+(\.{digit}+)?
 
 %%
 
@@ -67,32 +67,32 @@ realnum	{digit}+(\.{digit}+)?
 ";"			{return SEMICOLON;}
 <<EOF>>			{return END_OF_FILE;}
 
-{whitespace}		;  /* ignore whitespace */
+{whitespace}		;	/***** ignore whitespace *****/
 
-{id}			{ yylval.str_ptr = strdup(yytext);
-			  /*
-			  symrec *s;
-			  s = get_symbol(yylval.str_ptr);
-			  if (s == 0)
-				s = add_symbol(yylval.str_ptr, IDENTIFIER);	// TODO: var_type should be of kind L/D/AL/AD
-			  yylval.table_ptr = s;
-			  */
-			  return IDENTIFIER;
+{id}			{	yylval.str_ptr = strdup(yytext);
+				/*
+				symrec *s;
+				s = get_symbol(yylval.str_ptr);
+				if (s == 0)
+					s = add_symbol(yylval.str_ptr, IDENTIFIER);	// TODO: var_type should be of kind L/D/AL/AD
+				yylval.table_ptr = s;
+				*/
+				return IDENTIFIER;
 			}
 
-{intnum}		{ yylval.long_val = atol(yytext); 
-			  return (INTNUMBER);
+{intnum}		{	yylval.long_val = atol(yytext); 
+				return (INTNUMBER);
 			}
 
-{realnum}		{ sscanf(yytext, "%lf", &yylval.double_val); 
-			  return (REALNUMBER);
+{realnum}		{	sscanf(yytext, "%lf", &yylval.double_val); 
+				return (REALNUMBER);
 			}
 
-.			{ char msg[] = "lexical error at token ";
-			  char *s = (char *) calloc(1, strlen(msg) + yyleng + 1);
-			  strcpy(s, msg);
-			  strcpy(&s[strlen(s)], yytext);
-        		  yyerror(s);
+.			{	char msg[] = "lexical error at token ";
+				char *s = (char *) calloc(1, strlen(msg) + yyleng + 1);
+				strcpy(s, msg);
+				strcpy(&s[strlen(s)], yytext);
+        			yyerror(s);
 			}
 
 
