@@ -11,11 +11,11 @@
 	extern char *yytext;
 
 	/* prototypes */
-	nodeType *opr(int oper, int nops, ...);
-	nodeType *id(char* symbol_name);
-	nodeType *con(int value);
-	void freeNode(nodeType *p);
-	int ex(nodeType *p);
+	node *operator(int operation, int nops, ...);
+	node *identifier(char* symbol_name);
+	node *constant(int value);
+	void freeNode(node *p);
+	int ex(node *p);
 	int yylex(void);
 	void yyerror(char *s);
 
@@ -26,7 +26,7 @@
 	long long_val;		// integer value
 	double double_val;
 	char* str_ptr;		// symbol table index; aka, symbol name
-	nodeType *nPtr;		// node pointer
+	node *nPtr;		// node pointer
 };
 
 %token <long_val> INTNUMBER
@@ -70,45 +70,42 @@ block:			BEGINSYM statementGroup END			{ ex($2); freeNode($2); }
 			;
 
 statement:		expression SEMICOLON								{ $$ = $1; }
-			//| SEMICOLON									{ $$ = opr(';', 2, NULL, NULL); }
-			| PRINT expression SEMICOLON							{ $$ = opr(PRINT, 1, $2); }
+			//| SEMICOLON									{ $$ = operator(';', 2, NULL, NULL); }
+			| PRINT expression SEMICOLON							{ $$ = operator(PRINT, 1, $2); }
 			| assignment SEMICOLON								{ $$ = $1; }
-			| WHILE LPAREN expression RPAREN DO statementGroup ENDWHILE			{ $$ = opr(WHILE, 2, $3, $6); }
-			| IF LPAREN expression RPAREN THEN statementGroup ENDIF %prec IFX		{ $$ = opr(IF, 2, $3, $6); }
-			| IF LPAREN expression RPAREN THEN statementGroup ELSE statementGroup ENDIF	{ $$ = opr(IF, 3, $3, $6, $8); }
+			| WHILE LPAREN expression RPAREN DO statementGroup ENDWHILE			{ $$ = operator(WHILE, 2, $3, $6); }
+			| IF LPAREN expression RPAREN THEN statementGroup ENDIF %prec IFX		{ $$ = operator(IF, 2, $3, $6); }
+			| IF LPAREN expression RPAREN THEN statementGroup ELSE statementGroup ENDIF	{ $$ = operator(IF, 3, $3, $6, $8); }
 			//| '{' stmt_list '}'								{ $$ = $2; }
 			;
 
 statementGroup:		statement									{ $$ = $1; }
-			| statementGroup statement							{ $$ = opr(';', 2, $1, $2); }
+			| statementGroup statement							{ $$ = operator(SEMICOLON, 2, $1, $2); }
 			;
 
-assignment:		IDENTIFIER ASSIGN expression							{ $$ = opr(ASSIGN, 2, id($1), $3); }
-			| IDENTIFIER LBRACE expression RBRACE ASSIGN expression				{ $$ = opr(ASSIGN, 2, id($1), $6); /* TODO: currently assigns as a non array type */ }
+assignment:		IDENTIFIER ASSIGN expression							{ $$ = operator(ASSIGN, 2, identifier($1), $3); }
+			| IDENTIFIER LBRACE expression RBRACE ASSIGN expression				{ $$ = operator(ASSIGN, 2, identifier($1), $6); /* TODO: currently assigns as a non array type */ }
 			;
 
-expression:		INTNUMBER								{ $$ = con($1); }
-			| REALNUMBER									{ $$ = con($1); }
-			| IDENTIFIER									{ $$ = id($1); }
-			| MINUS expression %prec UMINUS							{ $$ = opr(UMINUS, 1, $2); }
-		//	| FACT expr									{ $$ = opr(FACT, 1, $2); }
-		//	| LNTWO expr									{ $$ = opr(LNTWO, 1, $2); }
-		//	| expr GCD expr									{ $$ = opr(GCD, 2, $1, $3); }
-			| expression PLUS expression							{ $$ = opr(PLUS, 2, $1, $3); }
-			| expression MINUS expression							{ $$ = opr(MINUS, 2, $1, $3); }
-			| expression MULT expression							{ $$ = opr(MULT, 2, $1, $3); }
-			| expression DIVIDE expression							{ $$ = opr(DIVIDE, 2, $1, $3); }
-			| expression LT expression							{ $$ = opr(LT, 2, $1, $3); }
-			| expression GT expression							{ $$ = opr(GT, 2, $1, $3); }
-			| expression GTE expression							{ $$ = opr(GTE, 2, $1, $3); }
-			| expression LTE expression							{ $$ = opr(LTE, 2, $1, $3); }
-			| expression NEQ expression							{ $$ = opr(NEQ, 2, $1, $3); }
-			| expression EQ expression							{ $$ = opr(EQ, 2, $1, $3); }
+expression:		INTNUMBER									{ $$ = constant($1); }
+			| REALNUMBER									{ $$ = constant($1); }
+			| IDENTIFIER									{ $$ = identifier($1); }
+			| MINUS expression %prec UMINUS							{ $$ = operator(UMINUS, 1, $2); }
+		//	| FACT expr									{ $$ = operator(FACT, 1, $2); }
+		//	| LNTWO expr									{ $$ = operator(LNTWO, 1, $2); }
+		//	| expr GCD expr									{ $$ = operator(GCD, 2, $1, $3); }
+			| expression PLUS expression							{ $$ = operator(PLUS, 2, $1, $3); }
+			| expression MINUS expression							{ $$ = operator(MINUS, 2, $1, $3); }
+			| expression MULT expression							{ $$ = operator(MULT, 2, $1, $3); }
+			| expression DIVIDE expression							{ $$ = operator(DIVIDE, 2, $1, $3); }
+			| expression LT expression							{ $$ = operator(LT, 2, $1, $3); }
+			| expression GT expression							{ $$ = operator(GT, 2, $1, $3); }
+			| expression GTE expression							{ $$ = operator(GTE, 2, $1, $3); }
+			| expression LTE expression							{ $$ = operator(LTE, 2, $1, $3); }
+			| expression NEQ expression							{ $$ = operator(NEQ, 2, $1, $3); }
+			| expression EQ expression							{ $$ = operator(EQ, 2, $1, $3); }
 			| LPAREN expression RPAREN							{ $$ = $2; }
 			;
-
-
-
 
 %%
 
@@ -116,60 +113,60 @@ expression:		INTNUMBER								{ $$ = con($1); }
  * subroutines                                 *
  ***********************************************/
 
-#define SIZEOF_NODETYPE ((char *)&p->con - (char *)p)
+#define SIZEOF_NODETYPE ((char *)&p->constant - (char *)p)
 
-nodeType *con(int value) {
-	nodeType *p;
+node *constant(int value) {
+	node *p;
 	size_t nodeSize;
-	nodeSize = SIZEOF_NODETYPE + sizeof(conNodeType); 	/* allocate node */
+	nodeSize = SIZEOF_NODETYPE + sizeof(constant_node); 	/* allocate node */
 	if ((p = malloc(nodeSize)) == NULL) {
 		yyerror("out of memory");
 	}
-	p->type = typeCon;					/* copy information */
-	p->con.value = value;
+	p->node_type = CONSTANT_TYPE;					/* copy information */
+	p->constant.value = value;
 	return p;
 }
 
-nodeType *id(char* symbol_name) {
-	nodeType *p;
+node *identifier(char* symbol_name) {
+	node *p;
 	size_t nodeSize;
-	nodeSize = SIZEOF_NODETYPE + sizeof(idNodeType);	/* allocate node */
+	nodeSize = SIZEOF_NODETYPE + sizeof(identifier_node);	/* allocate node */
 	if ((p = malloc(nodeSize)) == NULL) {
 		yyerror("out of memory");
 	}
-	p->type = typeId;					/* copy information */
-	p->id.symbol_name = symbol_name;
+	p->node_type = IDENTIFIER_TYPE;					/* copy information */
+	p->identifier.symbol_name = symbol_name;
 	return p;
 }
 
-nodeType *opr(int oper, int nops, ...) {
+node *operator(int operation, int nops, ...) {
 	va_list ap;
-	nodeType *p;
+	node *p;
 	size_t nodeSize;
 	int i;
-	nodeSize = SIZEOF_NODETYPE + sizeof(oprNodeType) + (nops - 1) * sizeof(nodeType*);  /* allocate node */
+	nodeSize = SIZEOF_NODETYPE + sizeof(operator_node) + (nops - 1) * sizeof(node*);  /* allocate node */
 	if ((p = malloc(nodeSize)) == NULL) {
 		yyerror("out of memory");
 	}
-	p->type = typeOpr;		/* copy information */
-	p->opr.oper = oper;
-	p->opr.nops = nops;
+	p->node_type = OPERATOR_TYPE;		/* copy information */
+	p->oper.operation = operation;
+	p->oper.nops = nops;
 	va_start(ap, nops);
 	for (i = 0; i < nops; i++) {
-		p->opr.op[i] = va_arg(ap, nodeType*);
+		p->oper.op[i] = va_arg(ap, node*);
 	}
 	va_end(ap);
 	return p;
 }
 
-void freeNode(nodeType *p) {
+void freeNode(node *p) {
 	int i;
 	if (!p) {
 		return;
 	}
-	if (p->type == typeOpr) {
-		for (i = 0; i < p->opr.nops; i++) {
-			freeNode(p->opr.op[i]);
+	if (p->node_type == OPERATOR_TYPE) {
+		for (i = 0; i < p->oper.nops; i++) {
+			freeNode(p->oper.op[i]);
 		}
 	}
 	free (p);
