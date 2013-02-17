@@ -13,30 +13,21 @@ all: calc pseudoc
 
 test: testcalc testpseudoc
 
-testpseudoc2: pseudoc
-	@./pseudoc < $(PSEUDOCTESTDIR)/1.psd > $(PSEUDOCTESTDIR)/1.output	
-	diff $(PSEUDOCTESTDIR)/1.output $(PSEUDOCTESTDIR)/1.jas
-	@./pseudoc < $(PSEUDOCTESTDIR)/2.psd > $(PSEUDOCTESTDIR)/2.output	
-	diff $(PSEUDOCTESTDIR)/2.output $(PSEUDOCTESTDIR)/2.jas
-	@./pseudoc < $(PSEUDOCTESTDIR)/3.psd > $(PSEUDOCTESTDIR)/3.output	
-	diff $(PSEUDOCTESTDIR)/3.output $(PSEUDOCTESTDIR)/3.jas
-
 testpseudoc: pseudoc pseudoctestfiles
 	-@rc=0; count=0; \
 	echo "======Testing pseudoc======"; \
 	for input_file in $(PSEUDOCTESTFILES); do \
 		testname=`basename $$input_file .psd`; \
-		output_file=$(PSEUDOCTESTDIR)/$$testname.output; \
-		expected_file=$(PSEUDOCTESTDIR)/$$testname.jas; \
+		output_file=$(PSEUDOCTESTDIR)/$$testname.jas; \
+		expected_file=$(PSEUDOCTESTDIR)/$$testname.expected; \
 		echo " TESTING $$testname"; \
-		./pseudoc < $$input_file > $$output_file 2>> $$output_file; \
+		./pseudoc $$input_file 2>> $$output_file; \
 		diff $$expected_file $$output_file > /dev/null || (echo -ne "\r  ....FAILED. See $$testname.output for failures." >&2 && false); \
 		rc=`expr $$rc + $$?`; count=`expr $$count + 1`; \
 	done; \
 	echo; echo " Tests run: $$count,  Failures: $$rc"; echo
 
 pseudoctestfiles: $(PSEUDOCTESTFILES)
-
 
 pseudoc: pseudo.tab.h pseudo.yy.c
 	@gcc -c pseudo.tab.c pseudo.yy.c
@@ -67,6 +58,8 @@ clean:
 	@$(RM) -f $(CALCTESTDIR)/*.output
 	@$(RM) -f $(PSEUDOCTESTDIR)/*.output
 	@$(RM) -f $(PSEUDOPARSETESTDIR)/*.output $(PSEUDOPARSETESTDIR)/*.jas
+
+cleanest: clean rmbakfiles rmjasmin
 
 testcalc: calc calctestfiles
 	-@rc=0; count=0; \
@@ -103,9 +96,11 @@ jasmin:
 	ln -s $(JASMIN_DIR)/jasmin-2.4/jasmin.jar .
 
 rmjasmin:
+	-@if [ -h jasmin.jar ]; then \
+		unlink jasmin.jar;\
+	fi; done
 	@$(RM) -fr $(JASMIN_DIR)/jasmin-2.4 $(JASMIN_DIR)/jasmin.jar
 	@$(RM) Keyboard.class
-	@unlink jasmin.jar
 
 rmbakfiles:
 	@$(RM) -f ./*~

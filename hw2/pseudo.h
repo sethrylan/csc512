@@ -31,3 +31,5 @@ typedef struct node_tag {
 } node;
 
 extern int sym[26];
+extern char *input_file_basename;
+

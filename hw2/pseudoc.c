@@ -11,6 +11,8 @@ Jasmin Compiler example:	http://files.dbruhn.de/compilerpraktikum/src/edu/kit/co
 #include "pseudo.h"
 #include "pseudo.tab.h"			// bison -d generated header
 
+extern FILE *yyout;
+
 static int lbl;
 
 int ex(node *p) {
@@ -20,44 +22,65 @@ int ex(node *p) {
 	}
 	switch(p->node_type) {
 		case CONSTANT_TYPE:	  
-			printf("\tpush(%d);\n", p->constant.value);
+			fprintf(yyout, "\tpush(%d);\n", p->constant.value);
 			break;
 		case IDENTIFIER_TYPE:
-			printf("\tpush(%s);\n", p->identifier.symbol_name);
+			fprintf(yyout, "\tpush(%s);\n", p->identifier.symbol_name);
 			break;
 		case OPERATOR_TYPE:
 			switch(p->oper.operation) {
-				case WHILE:
-					printf("L%03d:\n", lbl1 = lbl++);
+				case PROGRAM:
+					fprintf(yyout, ".source %s.psd\n", input_file_basename);
+					fprintf(yyout, ".class public %s\n", input_file_basename);
+					fprintf(yyout, ".super java/lang/Object\n");
+					fprintf(yyout, ";\n");
+					fprintf(yyout, "; standard initializer (calls java.lang.Object's initializer)\n");
+					fprintf(yyout, ";\n");
+					fprintf(yyout, ".method public <init>()V\n");
+					fprintf(yyout, "	aload_0\n");
+					fprintf(yyout, "	invokenonvirtual java/lang/Object/<init>()V\n");
+					fprintf(yyout, "	return\n");
+					fprintf(yyout, ".end method\n");
+					fprintf(yyout, ";\n");
+					fprintf(yyout, "; main()\n");
+					fprintf(yyout, ";\n");
+					fprintf(yyout, ".method public static main([Ljava/lang/String;)V\n");
 					ex(p->oper.op[0]);
-					printf("\tif(!pop())\n");
-					printf("\t\tgoto\tL%03d;\n", lbl2 = lbl++);
+					fprintf(yyout, "	; done\n");
+					fprintf(yyout, "	return\n");
+					fprintf(yyout, ".end method\n");
+					break;
+				case WHILE:
+					fprintf(yyout, "L%03d:\n", lbl1 = lbl++);
+					ex(p->oper.op[0]);
+					fprintf(yyout, "\tif(!pop())\n");
+					fprintf(yyout, "\t\tgoto\tL%03d;\n", lbl2 = lbl++);
 					ex(p->oper.op[1]);
-					printf("\tgoto\tL%03d;\n", lbl1);
-					printf("L%03d:\n", lbl2);
+					fprintf(yyout, "\tgoto\tL%03d;\n", lbl1);
+					fprintf(yyout, "L%03d:\n", lbl2);
 					break;
 				case IF:
 					ex(p->oper.op[0]);
 					if (p->oper.nops > 2) {
 						/* IF ELSE */
-						printf("\tif (!pop())\n");
-						printf("\t\tgoto L%03d;\n", lbl1 = lbl++);
+						fprintf(yyout, "\tif (!pop())\n");
+						fprintf(yyout, "\t\tgoto L%03d;\n", lbl1 = lbl++);
 						ex(p->oper.op[1]);
-						printf("\tgoto\tL%03d;\n", lbl2 = lbl++);
-						printf("L%03d:\n", lbl1);
+						fprintf(yyout, "\tgoto\tL%03d;\n", lbl2 = lbl++);
+						fprintf(yyout, "L%03d:\n", lbl1);
 						ex(p->oper.op[2]);
-						printf("L%03d:\n", lbl2);
+						fprintf(yyout, "L%03d:\n", lbl2);
 					} else {
 						/* IF */
-						printf("\tif (!pop())\n");
-						printf("\tgoto\tL%03d;\n", lbl1 = lbl++);
+						fprintf(yyout, "\tif (!pop())\n");
+						fprintf(yyout, "\tgoto\tL%03d;\n", lbl1 = lbl++);
 						ex(p->oper.op[1]);
-						printf("L%03d:\n", lbl1);
+						fprintf(yyout, "L%03d:\n", lbl1);
 					}
 					break;
 				case WRITE:	
 					ex(p->oper.op[0]);
-					printf("\tprint();\n");
+					fprintf(yyout, "\tprint();\n");
 					break;
 				case READ:
 					ex(p->oper.op[0]);
@@ -65,11 +88,11 @@ int ex(node *p) {
 					break;
 				case ASSIGN:	  
 					ex(p->oper.op[1]);
-					printf("\t%s = pop();\n", p->oper.op[0]->identifier.symbol_name);
+					fprintf(yyout, "\t%s = pop();\n", p->oper.op[0]->identifier.symbol_name);
 					break;
 				case UMINUS:
 					ex(p->oper.op[0]);
-					printf("\tneg();\n");
+					fprintf(yyout, "\tneg();\n");
 					break;
 				default:
 					ex(p->oper.op[0]);
@@ -80,37 +103,37 @@ int ex(node *p) {
 							return 0;
 							break;
 						case PLUS:
-							printf("\tadd();\n");
+							fprintf(yyout, "\tadd();\n");
 							break;
 						case MINUS:
-							printf("\tsub();\n");
+							fprintf(yyout, "\tsub();\n");
 							break; 	
 						case MULT:
-							printf("\tmul();\n");
+							fprintf(yyout, "\tmul();\n");
 							break;
 						case DIVIDE:
-							printf("\tdiv();\n");
+							fprintf(yyout, "\tdiv();\n");
 							break;
 						case LT:
-							printf("\tLESS();\n"); 
+							fprintf(yyout, "\tLESS();\n"); 
 							return 0;
 						case GT:  
-							printf("\tGREATER();\n"); 
+							fprintf(yyout, "\tGREATER();\n"); 
 							return 0;
 						case GTE:
-							printf("\tGE();\n"); 
+							fprintf(yyout, "\tGE();\n"); 
 							return 0;
 						case LTE: 
-							printf("\tLE();\n"); 
+							fprintf(yyout, "\tLE();\n"); 
 							return 0;
 						case NEQ:	
-							printf("\tNE();\n"); 
+							fprintf(yyout, "\tNE();\n"); 
 							return 0;
 						case EQ:	
-							printf("\tEQ();\n"); 
+							fprintf(yyout, "\tEQ();\n"); 
 							return 0;
 						default:
-							printf("/*unknown operator: %d*/\n", p->oper.operation);
+							fprintf(yyout, "/*unknown operator: %d*/\n", p->oper.operation);
 							return 0;
 					} // end (p->oper.oper) 
 			} // end switch(p->oper.oper)

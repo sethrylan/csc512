@@ -1,5 +1,5 @@
-.source 11.psd
-.class public 11
+.source ./test/pseudoc/12.psd
+.class public ./test/pseudoc/12
 .super java/lang/Object
 ;
 ; standard initializer (calls java.lang.Object's initializer)
@@ -13,11 +13,13 @@
 ; main()
 ;
 .method public static main([Ljava/lang/String;)V
-	.limit stack 2
-	.limit locals 1
-	getstatic      java/lang/System/out Ljava/io/PrintStream;
-	ldc            1138
-	invokevirtual  java/io/PrintStream/println(I)V
+	push(x);
+	push(x);
+	push(3);
+	add();
+	x = pop();
+	push(x);
+	print();
 	; done
 	return
 .end method

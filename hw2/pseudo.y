@@ -11,6 +11,7 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <stdarg.h>
+	#include <string.h>
 	#include "pseudo.h"
 
 	/***** Bison Debug Flag *****/
@@ -20,6 +21,11 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 	/***** Extern Variables *****/
 	extern int yylineno;
 	extern char *yytext;
+
+	extern FILE *yyin;
+	extern FILE *yyout;
+
+	char* input_file_basename;
 
 	/***** Prototypes *****/
 	node *operator(int operation, int nops, ...);
@@ -52,6 +58,7 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 %token <str_ptr> IDENTIFIER
 
 /***** Non-Typed Terminal Tokens *****/
+%token PROGRAM
 %token ASSIGN
 %token BEGINSYM END
 %token VAR INT REAL
@@ -78,14 +85,14 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 %nonassoc ELSE
 
 /***** Typed Non-Terminals *****/
-%type<nPtr> block statement expression test comparisonExpr statementGroup assignment
+%type<nPtr> program block statement expression test comparisonExpr statementGroup assignment
 %type<long_val> comparisonOp
 
 %%
 
 /***** Grammar Production Rules *****/
 
-program:		block END_OF_FILE								{ ex($1); freeNode($1); exit(0); }
+program:		block END_OF_FILE								{ $$ = operator(PROGRAM, 1, $1); ex($$); freeNode($$); exit(0); }
 			;
 block:			BEGINSYM statementGroup END							{ $$ = $2; }
 			| declarations BEGINSYM statementGroup END					{ $$ = $3; /* TODO: declarations */ }
@@ -220,7 +227,44 @@ void yyerror(char *s) {
 	//fprintf(stderr, "%s in line %d at %s\n", err, yylineno, yytext);
 }
 
-int main(void) {
-	yyparse();
-	return 0;
+void use_exit() {
+	fprintf(stderr, "use: pseudo [fn.psd]\n");
+	exit(0);
+}
+
+int main(int argc, char *argv[]) {
+	//yyparse();
+
+	int parse_result;
+	char *pos = NULL;
+
+	if (argc != 2) {
+		use_exit();
+	}
+	if (argc == 2) {
+		//fprintf(stderr, "test\n");
+		input_file_basename = strdup(argv[1]);
+		pos = (char *)rindex(input_file_basename, '.');
+		if (pos) {
+			*pos = '\0';
+		} else {
+			fprintf(stderr, "no file extension found\n");
+			use_exit();
+		}
+		if ((yyin = (FILE *)fopen(argv[1], "r")) == NULL) {
+			fprintf(stderr, "cannot open input file %s\n", argv[1]);
+			use_exit();
+		}
+		if ((yyout = (FILE *)fopen(strcat(input_file_basename, ".jas"), "w")) == NULL) {
+			fprintf(stderr, "cannot open output file %s\n", input_file_basename);
+			use_exit();
+		}
+		*pos = '\0';
+	} else {
+		input_file_basename = strdup("main");
+	}
+
+	parse_result = (int)yyparse();	
+
+	return parse_result;
 }

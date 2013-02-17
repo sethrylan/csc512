@@ -10,7 +10,7 @@
 	return
 .end method
 ;
-; main()
+; main() -
 ;
 .method public static main([Ljava/lang/String;)V
 	.limit stack 2
