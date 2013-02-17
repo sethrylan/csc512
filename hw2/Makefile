@@ -1,3 +1,4 @@
+CC = gcc
 CFLAGS= -Wall -ggdb --pedantic
 PROJDIRS := .
 TESTDIR := ./test
@@ -30,11 +31,11 @@ testpseudoc: pseudoc pseudoctestfiles
 pseudoctestfiles: $(PSEUDOCTESTFILES)
 
 pseudoc: pseudo.tab.h pseudo.yy.c
-	@gcc -c pseudo.tab.c pseudo.yy.c
-	@gcc pseudo.tab.o pseudo.yy.o pseudoc.c -o pseudoc
+	@$(CC) -c pseudo.tab.c pseudo.yy.c
+	@$(CC) pseudo.tab.o pseudo.yy.o pseudoc.c -o pseudoc
 
 pseudo: pseudo.tab.c pseudo.yy.c
-	@gcc -o pseudo pseudo.tab.c
+	@$(CC) -o pseudo pseudo.tab.c
 
 pseudo.tab.c: pseudo.y pseudo.yy.c
 	@bison pseudo.y

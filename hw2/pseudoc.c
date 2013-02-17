@@ -32,7 +32,9 @@ int assemble(node *p) {
 			fprintf(yyout, "	ldc %d\n", p->constant.value);			// push a constant on the stack
 			break;
 		case IDENTIFIER_TYPE:
+			//printf("IDENTIFIER_TYPE---\n");
 			fprintf(yyout, "\tpush(%s);\n", p->identifier.symbol_name);
+			//printf("----IDENTIFIER_TYPE\n");
 			break;
 		case OPERATOR_TYPE:
 			switch(p->oper.operation) {
@@ -52,19 +54,36 @@ int assemble(node *p) {
 					fprintf(yyout, "; \n");
 					fprintf(yyout, "; main() \n");
 					fprintf(yyout, "; \n");
+					//fprintf(yyout, "; PROGRAM --- \n");
+					assemble(p->oper.operands[0]);						// assemble BLOCK
+					//fprintf(yyout, "; ---- PROGRAM\n");
+					break;
+				case BLOCK:
 					fprintf(yyout, ".method public static main([Ljava/lang/String;)V \n");
 					fprintf(yyout, "	.limit stack %d \n", maxstacksize);		// Sets the maximum size of the operand stack required by the method
 					fprintf(yyout, "	.limit locals %d \n", maxsymbols + 1);		// Sets the number of local variables required by the method
-					assemble(p->oper.operands[0]);
+					if (p->oper.nops == 2) {						// declarations here
+						assemble(p->oper.operands[1]);
+					} 
+					//fprintf(yyout, "; BLOCK---\n");
+					assemble(p->oper.operands[0]);						// assemble statements
+					//fprintf(yyout, "; ---- BLOCK\n");
 					fprintf(yyout, "	; done \n");
 					fprintf(yyout, "	return \n");
 					fprintf(yyout, ".end method \n");
 					break;
-				case VARLISTDECLARATION:
-					//assemble(p->op[0]);	// varlist
-					//assemble(p->op[1]);	// type
-					//fprintf(yyout, "	.ldc 0\n");			// initialize to 0
-					//fprintf(yyout, "	istore 1\n");			// store in local variable n
+				case DECLARATIONS:
+					//printf("DECLARATIONS---\n");
+					assemble(p->oper.operands[0]);
+					//printf("---DECLARATIONS\n");
+					break;
+				case VARIABLELISTGROUP:				// operand[0] is an IDENTIFIER; operand[1] is a BASICTYPE/ARRAYTYPE nodes
+					//printf("VARIABLELISTGROUP\n");
+					//TODO: add_sym_to_table
+					assemble(p->oper.operands[0]);
+					fprintf(yyout, "	ldc 0 \n");			// initialize to 0
+					fprintf(yyout, "	istore 1 \n");			// store in local variable n
+					assemble(p->oper.operands[1]);
 					break;
 				case WHILE:
 					fprintf(yyout, "L%03d:\n", label_1);
@@ -120,30 +139,30 @@ int assemble(node *p) {
 				case READ:
 					/*  Read an integer  */
 					fprintf(yyout, "	ldc 0 \n");
-					fprintf(yyout, "	istore %d \n", 1);	// this will hold our final integer
+					fprintf(yyout, "	istore %d \n", 555);	// TODO: 555 is placehold index for what will later use symboltable; this will hold our final integer
 					fprintf(yyout, " Label%d: \n", label_1);
 					fprintf(yyout, "	getstatic java/lang/System/in Ljava/io/InputStream; \n");
 					fprintf(yyout, "	invokevirtual java/io/InputStream/read()I \n");
-					fprintf(yyout, "	istore %d \n", 1 + 1);
-					fprintf(yyout, "	iload %d \n", 1 + 1);
+					fprintf(yyout, "	istore %d \n", 555 + 1);
+					fprintf(yyout, "	iload %d \n", 555 + 1);
 					fprintf(yyout, "	ldc 10 \n");			// newline
 					fprintf(yyout, "	isub \n");
 					fprintf(yyout, "	ifeq Label%d \n", label_2);
-					fprintf(yyout, "	iload %d \n", 1 + 1);
+					fprintf(yyout, "	iload %d \n", 555 + 1);
 					fprintf(yyout, "	ldc 32 \n");			// space
 					fprintf(yyout, "	isub \n");
 					fprintf(yyout, "	ifeq Label%d \n", label_2);
-					fprintf(yyout, "	iload %d \n", 1 + 1);
+					fprintf(yyout, "	iload %d \n", 555 + 1);
 					fprintf(yyout, "	ldc 48 \n");			// now subtract digit from 48 for integer value 
 					fprintf(yyout, "	isub \n");
 					fprintf(yyout, "	ldc 10 \n");
-					fprintf(yyout, "	iload %d \n", 1);
+					fprintf(yyout, "	iload %d \n", 555);
 					fprintf(yyout, "	imul \n");
 					fprintf(yyout, "	iadd \n"); 
-					fprintf(yyout, "	istore %d \n", 1);
+					fprintf(yyout, "	istore %d \n", 555);
 					fprintf(yyout, "	goto Label%d \n", label_1);
 					fprintf(yyout, " Label%d:\n", label_2);          		// local variable #store_index now contains read integer
-					fprintf(yyout, "	iload %d \n", 1);		// read function ends here with result loaded to stack
+					fprintf(yyout, "	iload %d \n", 555);		// read function ends here with result loaded to stack
 					fprintf(yyout, "	istore ");			//TODO: assign
 					assemble(p->oper.operands[0]);
 					fprintf(yyout, " \n");

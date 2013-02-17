@@ -50,6 +50,7 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 	double double_val;
 	char* str_ptr;		// symbol table index; aka, symbol name
 	node *node_ptr;		// node pointer
+	var_type var_type;	// L, D, AL, AD
 };
 
 /***** Specify Start Symbol (defaults to first in order) *****/
@@ -59,12 +60,13 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 %token <long_val> INTNUMBER
 %token <double_val> REALNUMBER
 %token <str_ptr> IDENTIFIER
+%token <var_type> INT REAL
 
 /***** Non-Typed Terminal Tokens *****/
-%token PROGRAM VARLISTDECLARATION
+%token PROGRAM BLOCK DECLARATIONS VARIABLELISTGROUP
 %token ASSIGN
 %token BEGINSYM END
-%token VAR INT REAL
+%token VAR
 %token WHILE DO ENDWHILE
 %token IF THEN ENDIF
 %token READ WRITE
@@ -88,8 +90,10 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 %nonassoc ELSE
 
 /***** Typed Non-Terminals *****/
-%type<node_ptr> program block statement expression test comparisonExpr statementGroup assignment
+%type<node_ptr> program block declarations variableListGroup statement expression test comparisonExpr statementGroup assignment
 %type<long_val> comparisonOp
+%type<str_ptr> variableList variableGroup
+%type<var_type> type
 
 %%
 
@@ -97,26 +101,25 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 
 program:		block END_OF_FILE								{ $$ = operator(PROGRAM, 1, $1); assemble($$); freeNode($$); exit(0); }
 			;
-block:			BEGINSYM statementGroup END							{ $$ = $2; }
-			| declarations BEGINSYM statementGroup END					{ $$ = $3; }
+block:			BEGINSYM statementGroup END							{ $$ = operator(BLOCK, 1, $2); }
+			| declarations BEGINSYM statementGroup END					{ $$ = operator(BLOCK, 2, $3, $1); }
 			;
-declarations:		VAR variableListGroup								
+declarations:		VAR variableListGroup								{ $$ = operator(DECLARATIONS, 1, $2); }
 			;
-variableListGroup:	variableListGroup variableList COLON type SEMICOLON				{/* $$ = operator(VARLISTDECLARATION, 2, $2, $4); */}
-			|										
+variableListGroup:	variableListGroup variableList COLON type SEMICOLON				{ /*$$ = for every symbol_name in $2, make a new symbol of type_node_ptr $4*/
+													 $$ = operator(VARIABLELISTGROUP, 2, $2, $4);
+													 }
+			|										{ }
 			;
-variableList: 		IDENTIFIER variableGroup							
+variableList: 		IDENTIFIER variableGroup							{ $$ = $1; }
 			;
-variableGroup:		variableGroup COMMA IDENTIFIER
-			|				
+variableGroup:		variableGroup COMMA IDENTIFIER							{ $$ = $3; }
+			|										{ ; }
 			;
-type:			basicType 
-			| arrayType
-			;
-arrayType:		basicType LBRACE expression RBRACE
-			;
-basicType:		INT									
-			| REAL							
+type:			INT										{ $$ = L; }
+			| REAL										{ }
+			| INT LBRACE expression RBRACE							{ }	
+			| REAL LBRACE expression RBRACE							{ }
 			;
 statement:		assignment SEMICOLON								{ $$ = $1; }
 			| block SEMICOLON								{ $$ = $1; }

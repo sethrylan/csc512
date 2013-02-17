@@ -1,6 +1,17 @@
 
 
-typedef enum { CONSTANT_TYPE, IDENTIFIER_TYPE, OPERATOR_TYPE } node_type_enum;
+typedef enum {
+	CONSTANT_TYPE, 
+	IDENTIFIER_TYPE, 
+	OPERATOR_TYPE 
+} node_type_enum;
+
+typedef enum  {
+	L = 0,  /*long*/
+	D = 1,  /*double*/
+	AL = 2, /*long array*/
+	AD = 3  /*double array*/
+} var_type;
 
 /***** Constant Type *****/
 typedef struct {
