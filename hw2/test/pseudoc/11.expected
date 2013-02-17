@@ -15,9 +15,9 @@
 .method public static main([Ljava/lang/String;)V
 	.limit stack 2
 	.limit locals 1
-	getstatic      java/lang/System/out Ljava/io/PrintStream;
-	ldc            1138
-	invokevirtual  java/io/PrintStream/println(I)V
+	getstatic java/lang/System/out Ljava/io/PrintStream;
+	ldc 1138
+	invokevirtual java/io/PrintStream/println(I)V
 	; done
 	return
 .end method

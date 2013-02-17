@@ -12,6 +12,7 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 	#include <stdlib.h>
 	#include <stdarg.h>
 	#include <string.h>
+	#include <libgen.h>
 	#include "pseudo.h"
 
 	/***** Bison Debug Flag *****/
@@ -32,12 +33,14 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 	node *identifier(char* symbol_name);
 	node *constant(int value);
 	void freeNode(node *p);
-	int ex(node *p);
+	int assemble(node *p);
 	int yylex(void);
 	void yyerror(char *s);
 
 	/***** Symbol Table *****/
-	int sym[26];
+	int symbol_table[26];
+	int maxstacksize = 100;
+	int maxsymbols = 100;
 %}
 
 
@@ -46,7 +49,7 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 	long long_val;		// integer value
 	double double_val;
 	char* str_ptr;		// symbol table index; aka, symbol name
-	node *nPtr;		// node pointer
+	node *node_ptr;		// node pointer
 };
 
 /***** Specify Start Symbol (defaults to first in order) *****/
@@ -58,7 +61,7 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 %token <str_ptr> IDENTIFIER
 
 /***** Non-Typed Terminal Tokens *****/
-%token PROGRAM
+%token PROGRAM VARLISTDECLARATION
 %token ASSIGN
 %token BEGINSYM END
 %token VAR INT REAL
@@ -85,26 +88,26 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 %nonassoc ELSE
 
 /***** Typed Non-Terminals *****/
-%type<nPtr> program block statement expression test comparisonExpr statementGroup assignment
+%type<node_ptr> program block statement expression test comparisonExpr statementGroup assignment
 %type<long_val> comparisonOp
 
 %%
 
 /***** Grammar Production Rules *****/
 
-program:		block END_OF_FILE								{ $$ = operator(PROGRAM, 1, $1); ex($$); freeNode($$); exit(0); }
+program:		block END_OF_FILE								{ $$ = operator(PROGRAM, 1, $1); assemble($$); freeNode($$); exit(0); }
 			;
 block:			BEGINSYM statementGroup END							{ $$ = $2; }
-			| declarations BEGINSYM statementGroup END					{ $$ = $3; /* TODO: declarations */ }
+			| declarations BEGINSYM statementGroup END					{ /* TODO: declarations */ }
 			;
-declarations:		VAR identifierListGroup						
+declarations:		VAR variableListGroup								
 			;
-identifierListGroup:	identifierListGroup identifierList COLON type SEMICOLON
-			|
+variableListGroup:	variableListGroup variableList COLON type SEMICOLON				{/* $$ = operator(VARLISTDECLARATION, 2, $2, $4); */}
+			|										
 			;
-identifierList: 	IDENTIFIER identifierGroup
+variableList: 		IDENTIFIER variableGroup							
 			;
-identifierGroup:	identifierGroup COMMA IDENTIFIER
+variableGroup:		variableGroup COMMA IDENTIFIER
 			|				
 			;
 type:			basicType 
@@ -202,7 +205,7 @@ node *operator(int operation, int nops, ...) {
 	p->oper.nops = nops;
 	va_start(ap, nops);
 	for (i = 0; i < nops; i++) {
-		p->oper.op[i] = va_arg(ap, node*);
+		p->oper.operands[i] = va_arg(ap, node*);
 	}
 	va_end(ap);
 	return p;
@@ -215,7 +218,7 @@ void freeNode(node *p) {
 	}
 	if (p->node_type == OPERATOR_TYPE) {
 		for (i = 0; i < p->oper.nops; i++) {
-			freeNode(p->oper.op[i]);
+			freeNode(p->oper.operands[i]);
 		}
 	}
 	free (p);
@@ -236,30 +239,33 @@ int main(int argc, char *argv[]) {
 	//yyparse();
 
 	int parse_result;
-	char *pos = NULL;
+	char *extension_position, *last_path_position = NULL;
 
 	if (argc != 2) {
 		use_exit();
 	}
 	if (argc == 2) {
 		//fprintf(stderr, "test\n");
-		input_file_basename = strdup(argv[1]);
-		pos = (char *)rindex(input_file_basename, '.');
-		if (pos) {
-			*pos = '\0';
+		char* input_file_name = strdup(argv[1]);
+		input_file_basename = basename(input_file_name);
+		extension_position = (char *)rindex(input_file_basename, '.');
+
+		if (extension_position) {
+			*extension_position = '\0';
 		} else {
 			fprintf(stderr, "no file extension found\n");
 			use_exit();
 		}
+
 		if ((yyin = (FILE *)fopen(argv[1], "r")) == NULL) {
 			fprintf(stderr, "cannot open input file %s\n", argv[1]);
 			use_exit();
 		}
-		if ((yyout = (FILE *)fopen(strcat(input_file_basename, ".jas"), "w")) == NULL) {
-			fprintf(stderr, "cannot open output file %s\n", input_file_basename);
+		if ((yyout = (FILE *)fopen(strcat(input_file_name, ".jas"), "w")) == NULL) {
+			fprintf(stderr, "cannot open output file %s\n", input_file_name);
 			use_exit();
 		}
-		*pos = '\0';
+		*extension_position = '\0';
 	} else {
 		input_file_basename = strdup("main");
 	}

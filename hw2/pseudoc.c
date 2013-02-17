@@ -15,14 +15,14 @@ extern FILE *yyout;
 
 static int lbl;
 
-int ex(node *p) {
+int assemble(node *p) {
 	int lbl1, lbl2;
 	if (!p) {
 		return 0;
 	}
 	switch(p->node_type) {
-		case CONSTANT_TYPE:	  
-			fprintf(yyout, "\tpush(%d);\n", p->constant.value);
+		case CONSTANT_TYPE:
+			fprintf(yyout, "	ldc %d\n", p->constant.value);			// push a constant on the stack
 			break;
 		case IDENTIFIER_TYPE:
 			fprintf(yyout, "\tpush(%s);\n", p->identifier.symbol_name);
@@ -38,65 +38,74 @@ int ex(node *p) {
 					fprintf(yyout, ";\n");
 					fprintf(yyout, ".method public <init>()V\n");
 					fprintf(yyout, "	aload_0\n");
-					fprintf(yyout, "	invokenonvirtual java/lang/Object/<init>()V\n");
+					fprintf(yyout, "	invokenonvirtual java/lang/Object/<init>()V\n"); // or invokespecial? see // source: http://www.ceng.metu.edu.tr/courses/ceng444/link/f3jasmintutorial.html
 					fprintf(yyout, "	return\n");
 					fprintf(yyout, ".end method\n");
 					fprintf(yyout, ";\n");
 					fprintf(yyout, "; main()\n");
 					fprintf(yyout, ";\n");
 					fprintf(yyout, ".method public static main([Ljava/lang/String;)V\n");
-					ex(p->oper.op[0]);
+					fprintf(yyout, "	.limit stack %d\n", maxstacksize);		// ; so many items can be pushed
+					fprintf(yyout, "	.limit locals %d\n", maxsymbols + 1);		// ; so many variables exist (doubles need 2 items)
+					assemble(p->oper.operands[0]);
 					fprintf(yyout, "	; done\n");
 					fprintf(yyout, "	return\n");
 					fprintf(yyout, ".end method\n");
 					break;
+				case VARLISTDECLARATION:
+					//assemble(p->op[0]);	// varlist
+					//assemble(p->op[1]);	// type
+					//fprintf(yyout, "	.ldc 0\n");			// initialize to 0
+					//fprintf(yyout, "	istore 1\n");			// store in local variable n
+					break;
 				case WHILE:
 					fprintf(yyout, "L%03d:\n", lbl1 = lbl++);
-					ex(p->oper.op[0]);
+					assemble(p->oper.operands[0]);
 					fprintf(yyout, "\tif(!pop())\n");
 					fprintf(yyout, "\t\tgoto\tL%03d;\n", lbl2 = lbl++);
-					ex(p->oper.op[1]);
+					assemble(p->oper.operands[1]);
 					fprintf(yyout, "\tgoto\tL%03d;\n", lbl1);
 					fprintf(yyout, "L%03d:\n", lbl2);
 					break;
 				case IF:
-					ex(p->oper.op[0]);
+					assemble(p->oper.operands[0]);
 					if (p->oper.nops > 2) {
 						/* IF ELSE */
 						fprintf(yyout, "\tif (!pop())\n");
 						fprintf(yyout, "\t\tgoto L%03d;\n", lbl1 = lbl++);
-						ex(p->oper.op[1]);
+						assemble(p->oper.operands[1]);
 						fprintf(yyout, "\tgoto\tL%03d;\n", lbl2 = lbl++);
 						fprintf(yyout, "L%03d:\n", lbl1);
-						ex(p->oper.op[2]);
+						assemble(p->oper.operands[2]);
 						fprintf(yyout, "L%03d:\n", lbl2);
 					} else {
 						/* IF */
 						fprintf(yyout, "\tif (!pop())\n");
 						fprintf(yyout, "\tgoto\tL%03d;\n", lbl1 = lbl++);
-						ex(p->oper.op[1]);
+						assemble(p->oper.operands[1]);
 						fprintf(yyout, "L%03d:\n", lbl1);
 					}
 					break;
-				case WRITE:	
-					ex(p->oper.op[0]);
-					fprintf(yyout, "\tprint();\n");
+				case WRITE:
+					fprintf(yyout, "	getstatic java/lang/System/out Ljava/io/PrintStream;\n");
+					assemble(p->oper.operands[0]);
+					fprintf(yyout, "	invokevirtual java/io/PrintStream/println(I)V\n");
 					break;
 				case READ:
-					ex(p->oper.op[0]);
+					assemble(p->oper.operands[0]);
 					//TODO
 					break;
 				case ASSIGN:	  
-					ex(p->oper.op[1]);
-					fprintf(yyout, "\t%s = pop();\n", p->oper.op[0]->identifier.symbol_name);
+					assemble(p->oper.operands[1]);
+					fprintf(yyout, "\t%s = pop();\n", p->oper.operands[0]->identifier.symbol_name);
 					break;
 				case UMINUS:
-					ex(p->oper.op[0]);
+					assemble(p->oper.operands[0]);
 					fprintf(yyout, "\tneg();\n");
 					break;
 				default:
-					ex(p->oper.op[0]);
-					ex(p->oper.op[1]);
+					assemble(p->oper.operands[0]);
+					assemble(p->oper.operands[1]);
 					switch(p->oper.operation) {
 						case SEMICOLON:
 							/* END OF LINE */
@@ -133,7 +142,7 @@ int ex(node *p) {
 							fprintf(yyout, "\tEQ();\n"); 
 							return 0;
 						default:
-							fprintf(yyout, "/*unknown operator: %d*/\n", p->oper.operation);
+							fprintf(yyout, "	; unknown operator: %d \n", p->oper.operation);
 							return 0;
 					} // end (p->oper.oper) 
 			} // end switch(p->oper.oper)

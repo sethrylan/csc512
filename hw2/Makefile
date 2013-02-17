@@ -56,7 +56,7 @@ clean:
 	@$(RM) -f *.output
 	@$(RM) -f *.class
 	@$(RM) -f $(CALCTESTDIR)/*.output
-	@$(RM) -f $(PSEUDOCTESTDIR)/*.output
+	@$(RM) -f $(PSEUDOCTESTDIR)/*.jas
 	@$(RM) -f $(PSEUDOPARSETESTDIR)/*.output $(PSEUDOPARSETESTDIR)/*.jas
 
 cleanest: clean rmbakfiles rmjasmin
@@ -103,7 +103,7 @@ rmjasmin:
 	@$(RM) Keyboard.class
 
 rmbakfiles:
-	-@find . -name *~ -delete
+	-@find . -name "*~" -delete
 	
 testpseudoparse: pseudo pseudoparsetestfiles
 	-@rc=0; count=0; \
