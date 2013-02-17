@@ -98,7 +98,7 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 program:		block END_OF_FILE								{ $$ = operator(PROGRAM, 1, $1); assemble($$); freeNode($$); exit(0); }
 			;
 block:			BEGINSYM statementGroup END							{ $$ = $2; }
-			| declarations BEGINSYM statementGroup END					{ /* TODO: declarations */ }
+			| declarations BEGINSYM statementGroup END					{ $$ = $3; }
 			;
 declarations:		VAR variableListGroup								
 			;
@@ -121,7 +121,7 @@ basicType:		INT
 statement:		assignment SEMICOLON								{ $$ = $1; }
 			| block SEMICOLON								{ $$ = $1; }
 			| test SEMICOLON								{ $$ = $1; }
-			| READ LPAREN expression RPAREN SEMICOLON					{ $$ = operator(READ, 1, $3); }
+			| READ LPAREN IDENTIFIER RPAREN SEMICOLON					{ $$ = operator(READ, 1, $3); }
 			| WRITE LPAREN expression RPAREN SEMICOLON					{ $$ = operator(WRITE, 1, $3); }
 			| WHILE comparisonExpr DO statementGroup ENDWHILE SEMICOLON			{ $$ = operator(WHILE, 2, $2, $4); }
 			//| SEMICOLON									{ $$ = operator(';', 2, NULL, NULL); }
