@@ -1,4 +1,16 @@
 
+struct symrec {
+	char *name;				/* symbol name */
+	int  type;				/* symbol type */
+	union {					/* value of a variable */
+		long long_val;
+		double double_val;		
+		long long_array_val[100];
+		double double_array_val[100];
+	} value;
+	struct symrec *next;    		/* link field */
+};
+typedef struct symrec symrec;
 
 typedef enum {
 	CONSTANT_TYPE, 
@@ -41,7 +53,8 @@ typedef struct node_tag {
 	};
 } node;
 
-extern int symbol_table[26];
+//extern int symbol_table[26];
+extern symrec *symbol_table;
 extern char *input_file_basename;
 extern int maxstacksize, maxsymbols;
 

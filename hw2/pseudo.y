@@ -38,7 +38,7 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 	void yyerror(char *s);
 
 	/***** Symbol Table *****/
-	int symbol_table[26];
+	symrec *symbol_table = (symrec *)0;
 	int maxstacksize = 100;
 	int maxsymbols = 100;
 %}
@@ -169,6 +169,33 @@ comparisonExpr:		expression comparisonOp expression						{ $$ = operator($2, 2, 
 /***** Subroutines *****/
 
 #define SIZEOF_NODETYPE ((char *)&p->constant - (char *)p)
+
+
+symrec *add_symbol(char *symbol_name, int sym_type) {
+	symrec *ptr;
+	ptr = (symrec *)malloc(sizeof(symrec));
+	ptr->name = (char *)malloc(strlen(symbol_name) + 1);
+	strcpy(ptr->name, symbol_name);
+	ptr->type = sym_type;
+//	switch(sym_type) {
+//		case L: ptr->value.long_val = 0; break;
+//		case D: ptr->value.double_val = 0; break;
+//		case AL: ptr->value.long_array_val; break;
+//		case AD: ptr->value.double_array_val; break;
+//	}
+	ptr->next = (struct symrec *)symbol_table;
+	symbol_table = ptr;
+	return ptr;
+}
+
+symrec *get_symbol(char *symbol_name) {
+	symrec *ptr;
+	for(ptr = symbol_table; ptr != (symrec *)0; ptr = (symrec *)ptr->next)
+		if(strcmp(ptr->name,symbol_name) == 0)
+			return ptr;
+	return NULL;
+}
+
 
 node *constant(int value) {
 	node *p;
