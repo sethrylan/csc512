@@ -103,7 +103,7 @@ rmjasmin:
 	@$(RM) Keyboard.class
 
 rmbakfiles:
-	@$(RM) -f ./*~
+	-@find . -name *~ -delete
 	
 testpseudoparse: pseudo pseudoparsetestfiles
 	-@rc=0; count=0; \
