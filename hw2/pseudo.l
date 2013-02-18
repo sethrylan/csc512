@@ -73,7 +73,7 @@ realnum			{digit}+(\.{digit}+)?
 				/*
 				symrec *s;
 				s = get_symbol(yylval.str_ptr);
-				if (s == 0)
+				//if (s == 0)
 					s = add_symbol(yylval.str_ptr, IDENTIFIER);	// TODO: var_type should be of kind L/D/AL/AD
 				yylval.table_ptr = s;
 				*/

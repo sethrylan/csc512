@@ -38,7 +38,7 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 	void yyerror(char *s);
 
 	/***** Symbol Table *****/
-	symrec *symbol_table = (symrec *)0;
+	syment *symbol_table = (syment *)0;
 	int maxstacksize = 100;
 	int maxsymbols = 100;
 %}
@@ -50,6 +50,7 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 	double double_val;
 	char* str_ptr;		// symbol table index; aka, symbol name
 	node *node_ptr;		// node pointer
+	syment *table_ptr;	
 	var_type var_type;	// L, D, AL, AD
 };
 
@@ -90,10 +91,9 @@ Another Symbol Table:	http://stackoverflow.com/questions/10640290/lexx-and-yacc-
 %nonassoc ELSE
 
 /***** Typed Non-Terminals *****/
-%type<node_ptr> program block declarations variableListGroup statement expression test comparisonExpr statementGroup assignment
+%type<node_ptr> program block declarations type variableListGroup  variableList variableGroup statement expression test comparisonExpr statementGroup assignment
 %type<long_val> comparisonOp
-%type<str_ptr> variableList variableGroup
-%type<var_type> type
+
 
 %%
 
@@ -171,29 +171,24 @@ comparisonExpr:		expression comparisonOp expression						{ $$ = operator($2, 2, 
 #define SIZEOF_NODETYPE ((char *)&p->constant - (char *)p)
 
 
-symrec *add_symbol(char *symbol_name, int sym_type) {
-	symrec *ptr;
-	ptr = (symrec *)malloc(sizeof(symrec));
-	ptr->name = (char *)malloc(strlen(symbol_name) + 1);
-	strcpy(ptr->name, symbol_name);
-	ptr->type = sym_type;
-//	switch(sym_type) {
-//		case L: ptr->value.long_val = 0; break;
-//		case D: ptr->value.double_val = 0; break;
-//		case AL: ptr->value.long_array_val; break;
-//		case AD: ptr->value.double_array_val; break;
-//	}
-	ptr->next = (struct symrec *)symbol_table;
+
+syment *add_symbol(char *symbol_name, var_type symbol_type) {
+	syment *ptr = malloc(sizeof(syment));
+	ptr->symbol_name = (char *)malloc(strlen(symbol_name) + 1);
+	strcpy(ptr->symbol_name, symbol_name);
+	ptr->type = symbol_type;
+	ptr->offset = 1;
+	ptr->next = (syment *)symbol_table;
 	symbol_table = ptr;
 	return ptr;
 }
 
-symrec *get_symbol(char *symbol_name) {
-	symrec *ptr;
-	for(ptr = symbol_table; ptr != (symrec *)0; ptr = (symrec *)ptr->next)
-		if(strcmp(ptr->name,symbol_name) == 0)
+syment *get_symbol(char *symbol_name) {
+	syment *ptr = 0;
+	for(ptr = symbol_table; ptr != (syment *)0; ptr = (syment *)ptr->next)
+		if(strcmp(ptr->symbol_name, symbol_name) == 0)
 			return ptr;
-	return NULL;
+	return ptr;
 }
 
 

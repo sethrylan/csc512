@@ -77,7 +77,7 @@ int assemble(node *p) {
 					assemble(p->oper.operands[0]);
 					//printf("---DECLARATIONS\n");
 					break;
-				case VARIABLELISTGROUP:				// operand[0] is an IDENTIFIER; operand[1] is a BASICTYPE/ARRAYTYPE nodes
+				case VARIABLELISTGROUP:				// operand[0] is an identifier type node; operand[1] is ?
 					//printf("VARIABLELISTGROUP\n");
 					//TODO: add_sym_to_table
 					assemble(p->oper.operands[0]);

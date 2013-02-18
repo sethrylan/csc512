@@ -1,16 +1,4 @@
 
-struct symrec {
-	char *name;				/* symbol name */
-	int  type;				/* symbol type */
-	union {					/* value of a variable */
-		long long_val;
-		double double_val;		
-		long long_array_val[100];
-		double double_array_val[100];
-	} value;
-	struct symrec *next;    		/* link field */
-};
-typedef struct symrec symrec;
 
 typedef enum {
 	CONSTANT_TYPE, 
@@ -18,12 +6,36 @@ typedef enum {
 	OPERATOR_TYPE 
 } node_type_enum;
 
+
 typedef enum  {
 	L = 0,  /*long*/
 	D = 1,  /*double*/
 	AL = 2, /*long array*/
 	AD = 3  /*double array*/
 } var_type;
+
+
+typedef struct syment_s {
+	char *symbol_name;
+	int offset;
+	var_type type;
+	struct syment_s *next;
+} syment;
+
+
+
+/*
+typedef struct scope {
+	syment sym_table;
+	struct scope* parent;
+} *scope;
+*/
+
+struct var_info{
+	int offset;
+	var_type type;
+};
+
 
 /***** Constant Type *****/
 typedef struct {
@@ -54,7 +66,7 @@ typedef struct node_tag {
 } node;
 
 //extern int symbol_table[26];
-extern symrec *symbol_table;
+extern syment *symbol_table;
 extern char *input_file_basename;
 extern int maxstacksize, maxsymbols;
 
