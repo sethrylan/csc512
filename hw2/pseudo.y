@@ -111,15 +111,15 @@ variableListGroup:	variableListGroup variableList COLON type SEMICOLON				{ /*$$
 													 }
 			|										{ }
 			;
-variableList: 		IDENTIFIER variableGroup							{ $$ = $1; }
+variableList: 		IDENTIFIER variableGroup							{ $$ = identifier($1); }
 			;
-variableGroup:		variableGroup COMMA IDENTIFIER							{ $$ = $3; }
-			|										{ ; }
+variableGroup:		variableGroup COMMA IDENTIFIER							{ $$ = identifier($3); }
+			|										{ }
 			;
 type:			INT										{ $$ = L; }
-			| REAL										{ }
-			| INT LBRACE expression RBRACE							{ }	
-			| REAL LBRACE expression RBRACE							{ }
+			| REAL										{  }
+			| INT LBRACE expression RBRACE							{  }	
+			| REAL LBRACE expression RBRACE							{  }
 			;
 statement:		assignment SEMICOLON								{ $$ = $1; }
 			| block SEMICOLON								{ $$ = $1; }
@@ -183,12 +183,17 @@ syment *add_symbol(char *symbol_name, var_type symbol_type) {
 	return ptr;
 }
 
-syment *get_symbol(char *symbol_name) {
+struct var_info get_symbol(char *symbol_name) {
 	syment *ptr = 0;
-	for(ptr = symbol_table; ptr != (syment *)0; ptr = (syment *)ptr->next)
-		if(strcmp(ptr->symbol_name, symbol_name) == 0)
-			return ptr;
-	return ptr;
+	var_info vi;
+	for(ptr = symbol_table; ptr != (syment *)0; ptr = (syment *)ptr->next) {
+		if(strcmp(ptr->symbol_name, symbol_name) == 0) {
+			vi.type = ptr->type;
+			vi.offset = ptr->offset;
+			return vi;
+		}
+	}
+	return vi;
 }
 
 
@@ -299,3 +304,85 @@ int main(int argc, char *argv[]) {
 
 	return parse_result;
 }
+
+
+
+	/*
+	 * stack - change stack size
+	 */
+/*	void stack(int size) {
+		stacksize += size;
+		if(stacksize < 0) {
+			printf("warning: stack size cannot become negative\n");
+		}
+		if (stacksize > maxstacksize) {
+			maxstacksize = stacksize;
+		}
+	}
+*/
+
+	/*
+	 * concat - concatenate s1+s2 and return result
+	 * side-effect: malloc result, free s1+s2
+	 */
+/*	char *concat(char *s1, char *s2) {
+		char *s;
+		if (!s1) {
+			return s2;
+		}
+		if (!s2) {
+			return s1;
+		}
+		s = (char *)calloc(sizeof(char), strlen(s1) + strlen(s2) + 1);
+		strcat(s, s1);
+		strcat(s, s2);
+		free(s1);
+		free(s2);
+		return s;
+	}
+*/
+
+	/*
+	 * return string "lload/dload/aload <i>" for i-th variable which is "symbol_name" in symbol table
+	 */
+/*	char *load(char *symbol_name) {
+		symrec* symbol = get_symbol(symbol_name);
+		switch(symbol->var_info.var_type) {
+			case L:
+				sprintf(t, "  lload %d ; load long %s \n", symbol->var_info.offset, symbol_name);
+				break;
+			case D:
+				sprintf(t, "  dload %d ;load double %s \n", symbol->var_info.offset, symbol_name);
+				break;
+			case AL:
+			case AD:
+				sprintf(t, "  aload %d ; load array %s \n", symbol->var_info.offset, symbol_name);
+				break;
+			default:
+				printf("error loading symbol");
+				exit(0); 
+		}
+		return strdup(t);
+	}
+*/
+
+	/*
+	 * return string "dstore/lstore/astore <i>" for i-th variable which is "symbol_name" in symbol table
+	 */
+/*	char *store(char *symbol_name) {
+		symrec* symbol = get_symbol(symbol_name);
+		switch(symbol->var_info.var_type) {
+			case L:
+				sprintf(t, "  lstore %d ;  storing %s var \n", symbol->var_info.offset, symbol_name);
+				break;
+			case D:
+				sprintf(t, "  dstore %d ; storing %s var\n", symbol->var_info.offset, symbol_name);
+				break;
+			case AL:
+			case AD:
+				sprintf(t, "  astore %d; storing array %s\n", symbol->var_info.offset, symbol_name);
+				break;
+		}
+		return strdup(t);
+	}
+*/

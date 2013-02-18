@@ -86,13 +86,31 @@ int assemble(node *p) {
 					assemble(p->oper.operands[1]);
 					break;
 				case WHILE:
-					fprintf(yyout, "L%03d:\n", label_1);
-					assemble(p->oper.operands[0]);
-					fprintf(yyout, "\tif(!pop())\n");
-					fprintf(yyout, "\t\tgoto\tL%03d;\n", label_2);
-					assemble(p->oper.operands[1]);
-					fprintf(yyout, "\tgoto\tL%03d;\n", label_1);
-					fprintf(yyout, "L%03d:\n", label_2);
+
+					/*
+					goto Label2
+					Label1:
+					<statementGroup>
+					Label2:
+					<comparisonExpr>
+					  ifne Label1
+					*/
+/*
+					sprintf(go_l1, "  ifne Label%d\n", label);
+					sprintf(l1, "Label%d:\n", label++);
+					sprintf(goto_l2, "  goto Label%d\n", label);
+					sprintf(l2, "Label%d:\n", label++);
+					$$ = concat(
+					       concat(
+						 concat(
+						   concat(
+						     concat(strdup(goto_l2), strdup(l1))
+						       , $4),
+							 strdup(l2)),
+							   $2),
+					     		    strdup(go_l1));
+					stack(-1);
+*/
 					break;
 				case IF:
 					assemble(p->oper.operands[0]);
@@ -137,12 +155,14 @@ int assemble(node *p) {
 
 					break;
 				case READ:
-					/*  Read an integer  */
 					fprintf(yyout, "	ldc 0 \n");
-					fprintf(yyout, "	istore %d \n", 555);	// TODO: 555 is placehold index for what will later use symboltable; this will hold our final integer
+					fprintf(yyout, "	istore %d \n", 555);	// TODO: 555 is placeholder index; this will hold our final integer
 					fprintf(yyout, " Label%d: \n", label_1);
 					fprintf(yyout, "	getstatic java/lang/System/in Ljava/io/InputStream; \n");
-					fprintf(yyout, "	invokevirtual java/io/InputStream/read()I \n");
+					//struct var_info readId = get_symbol(p->oper.operands[0]->identifier.symbol_name);
+					//if(readId.type == D) {
+						fprintf(yyout, "	invokevirtual java/io/InputStream/read()I \n");
+					//}
 					fprintf(yyout, "	istore %d \n", 555 + 1);
 					fprintf(yyout, "	iload %d \n", 555 + 1);
 					fprintf(yyout, "	ldc 10 \n");			// newline
@@ -164,7 +184,7 @@ int assemble(node *p) {
 					fprintf(yyout, " Label%d:\n", label_2);          		// local variable #store_index now contains read integer
 					fprintf(yyout, "	iload %d \n", 555);		// read function ends here with result loaded to stack
 					fprintf(yyout, "	istore ");			//TODO: assign
-					assemble(p->oper.operands[0]);
+					//assemble(p->oper.operands[0]);
 					fprintf(yyout, " \n");
 
 					break;

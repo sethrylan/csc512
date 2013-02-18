@@ -22,8 +22,6 @@ typedef struct syment_s {
 	struct syment_s *next;
 } syment;
 
-
-
 /*
 typedef struct scope {
 	syment sym_table;
@@ -35,6 +33,7 @@ struct var_info{
 	int offset;
 	var_type type;
 };
+typedef struct var_info var_info;
 
 
 /***** Constant Type *****/
